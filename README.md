@@ -15,7 +15,7 @@ import RnLnd from "rn-lnd";
 
 // ...
 
-const result = await RnLnd.multiply(3, 7);
+const result = await RnLnd.start();
 ```
 
 ## Contributing
