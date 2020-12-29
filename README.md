@@ -15,12 +15,16 @@ import RnLnd from "rn-lnd";
 
 // ...
 
-const result = await RnLnd.start();
+await RnLnd.start();
+await RnLnd.initWallet('gsomgsomgsom', 'abstract rhythm weird food attract treat mosquito sight royal actor surround ride strike remove guilt catch filter summer mushroom protect poverty cruel chaos pattern');
+// or await RnLnd.unlockWallet('gsomgsomgsom');  if its not the first run
+console.warn(await RnLnd.getInfo());
 ```
 
-## Contributing
+## Example app
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+![image](https://user-images.githubusercontent.com/1913337/103314614-7f955e80-4a1b-11eb-9ee1-9834120e2c89.png)
+
 
 ## License
 
