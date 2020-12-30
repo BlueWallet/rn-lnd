@@ -3,6 +3,7 @@ package com.rnlnd.helpers
 import android.util.Log
 import com.facebook.react.bridge.Promise
 import com.google.protobuf.InvalidProtocolBufferException
+import com.google.protobuf.MessageOrBuilder
 import lndmobile.Callback
 import lndmobile.RecvStream
 
@@ -14,12 +15,23 @@ class OpenChannelRecvStream(promise: Promise) : RecvStream {
   public override  fun onResponse(var1: ByteArray?) {
     if (var1 != null) {
       val resp: lnrpc.Rpc.OpenStatusUpdate = lnrpc.Rpc.OpenStatusUpdate.parseFrom(var1);
-      val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
-      val hashMap : HashMap<String, Any> = HashMap<String, Any>();
-      hashMap.put("fundingAddress", resp.psbtFund.fundingAddress);
-      hashMap.put("fundingAmount", resp.psbtFund.fundingAmount);
-      hashMap.put("pendingChanId", byteArrayToHex(resp.pendingChanId.toByteArray()));
-      this.promise.resolve(gsonPretty.toJson(hashMap));
+      this.promise.resolve(respToJson(resp));
+    } else {
+      this.promise.resolve(true);
+    }
+  }
+}
+
+class CloseChannelRecvStream(promise: Promise) : RecvStream {
+  private val promise = promise;
+
+  public override  fun onError(p0: Exception) {}
+
+  public override  fun onResponse(var1: ByteArray?) {
+    if (var1 != null) {
+      val resp: lnrpc.Rpc.CloseStatusUpdate = lnrpc.Rpc.CloseStatusUpdate.parseFrom(var1);
+      Log.v("ReactNativeLND", "CloseChannelRecvStream onResponse: " + respToJson(resp));
+      this.promise.resolve(respToJson(resp));
     } else {
       this.promise.resolve(true);
     }
@@ -38,10 +50,7 @@ class FundingStateStepCallback(promise: Promise) : Callback {
     Log.v("ReactNativeLND", "FundingStateStepCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.FundingStateStepResp = lnrpc.Rpc.FundingStateStepResp.parseFrom(p0);
-      Log.v("ReactNativeLND", "FundingStateStepCallback success --> " + resp.toString());
-      val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
-//      this.promise.resolve(resp.toString());
-      this.promise.resolve(gsonPretty.toJson(resp));
+      this.promise.resolve(respToJson(resp));
     } else {
       this.promise.resolve(true);
     }
@@ -60,25 +69,9 @@ class GetInfoCallback(promise: Promise) : Callback {
     Log.v("ReactNativeLND", "GetInfoCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.GetInfoResponse = lnrpc.Rpc.GetInfoResponse.parseFrom(p0);
-      val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
-      val hashMap : HashMap<String, Any> = HashMap<String, Any>();
-      hashMap.put("blockHeight", resp.blockHeight);
-      hashMap.put("identityPubkey", resp.identityPubkey);
-      hashMap.put("numActiveChannels", resp.numActiveChannels);
-      hashMap.put("numInactiveChannels", resp.numInactiveChannels);
-      hashMap.put("numPeers", resp.numPeers);
-      hashMap.put("numPendingChannels", resp.numPendingChannels);
-      hashMap.put("syncedToGraph", resp.syncedToGraph);
-      hashMap.put("version", resp.version);
-      hashMap.put("syncedToChain", resp.syncedToChain);
-
-      Log.v("ReactNativeLND", "GetInfoCallback success :: " + gsonPretty.toJson(hashMap));
-
-//      this.promise.resolve(resp);
-      this.promise.resolve(gsonPretty.toJson(hashMap));
-//      this.promise.resolve(gsonPretty.toJson(resp.allFields));
+      this.promise.resolve(respToJson(resp));
     } else {
-      this.promise.resolve(true);
+      this.promise.resolve(false);
     }
   }
 }
@@ -89,17 +82,40 @@ class ListChannelsCallback(promise: Promise) : Callback {
 
   public override  fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "ListChannelsCallback onError");
-    this.promise.resolve("[]");
+    this.promise.resolve(false);
   }
 
   public override  fun onResponse(p0: ByteArray?) {
     Log.v("ReactNativeLND", "ListChannelsCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.ListChannelsResponse = lnrpc.Rpc.ListChannelsResponse.parseFrom(p0);
-      val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
-      this.promise.resolve(gsonPretty.toJson(resp));
+      this.promise.resolve(respToJson(resp));
+
+      /*val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
+
+      val channelsArray = mutableListOf<Any>();
+      resp.channelsList.iterator().forEach {
+        val channelInfoHashMap : HashMap<String, Any> = HashMap<String, Any>();
+        channelInfoHashMap.put("active", it.active);
+        channelInfoHashMap.put("capacity", it.capacity);
+        channelInfoHashMap.put("localBalance", it.localBalance);
+        channelInfoHashMap.put("remoteBalance", it.remoteBalance);
+        channelInfoHashMap.put("chanId", it.chanId);
+        channelInfoHashMap.put("channelPoint", it.channelPoint);
+        channelInfoHashMap.put("initiator", it.initiator);
+        channelInfoHashMap.put("numUpdates", it.numUpdates);
+        channelInfoHashMap.put("remotePubkey", it.remotePubkey);
+        channelInfoHashMap.put("private", it.private);
+        channelInfoHashMap.put("localChanReserveSat", it.localConstraints.chanReserveSat);
+        channelInfoHashMap.put("remoteChanReserveSat", it.remoteConstraints.chanReserveSat);
+        channelInfoHashMap.put("totalSatoshisReceived", it.totalSatoshisReceived);
+        channelInfoHashMap.put("totalSatoshisSent", it.totalSatoshisSent);
+        channelsArray.add(channelInfoHashMap);
+      }
+
+      this.promise.resolve(gsonPretty.toJson(channelsArray));*/
     } else {
-      this.promise.resolve("[]");
+      this.promise.resolve(false);
     }
   }
 }
@@ -110,17 +126,16 @@ class PendingChannelsCallback(promise: Promise) : Callback {
 
   public override  fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "PendingChannelsCallback onError");
-    this.promise.resolve("[]");
+    this.promise.resolve(false);
   }
 
   public override  fun onResponse(p0: ByteArray?) {
     Log.v("ReactNativeLND", "PendingChannelsCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.PendingChannelsResponse = lnrpc.Rpc.PendingChannelsResponse.parseFrom(p0);
-      val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
-      this.promise.resolve(gsonPretty.toJson(resp));
+      this.promise.resolve(respToJson(resp));
     } else {
-      this.promise.resolve("[]");
+      this.promise.resolve(false);
     }
   }
 }
@@ -149,7 +164,7 @@ class StartCallback(promise: Promise) : Callback {
   }
 
   public override  fun onResponse(p0: ByteArray?) {
-    Log.v("ReactNativeLND", "lnd started !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    Log.v("ReactNativeLND", "lnd started ===========================================================================");
     this.promise.resolve(true);
   }
 }
@@ -160,7 +175,7 @@ class StartCallback2 : Callback {
   }
 
   public override  fun onResponse(p0: ByteArray?) {
-    Log.v("ReactNativeLND", "lnd is ready!");
+    Log.v("ReactNativeLND", "lnd is ready ===========================================================================");
   }
 }
 
@@ -169,12 +184,12 @@ class InitWalletCallback(promise: Promise) : Callback {
   private val promise = promise;
 
   override fun onError(e: Exception) {
-    Log.v("ReactNativeLND", "lnd init err ???????????????????????????????????" + e.message);
+    Log.v("ReactNativeLND", "lnd init err ===========================================================================" + e.message);
     this.promise.resolve(false);
   }
 
   override fun onResponse(bytes: ByteArray?) {
-    Log.v("ReactNativeLND", "lnd inited !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    Log.v("ReactNativeLND", "lnd inited ===========================================================================");
     try {
       if (bytes != null) {
         val resp: lnrpc.Walletunlocker.InitWalletResponse = lnrpc.Walletunlocker.InitWalletResponse.parseFrom(bytes);
@@ -194,12 +209,12 @@ class UnlockWalletCallback(pr: Promise) : Callback {
   private val prr = pr;
 
   override fun onError(e: Exception) {
-    Log.v("ReactNativeLND", "lnd unlock err ???????????????????????????????????" + e.message);
+    Log.v("ReactNativeLND", "lnd unlock err ===========================================================================" + e.message);
     this.prr.resolve(false);
   }
 
   override fun onResponse(bytes: ByteArray?) {
-    Log.v("ReactNativeLND", "lnd unlocked !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    Log.v("ReactNativeLND", "lnd unlocked ===========================================================================");
     try {
       if (bytes != null) {
         val resp: lnrpc.Walletunlocker.UnlockWalletRequest = lnrpc.Walletunlocker.UnlockWalletRequest.parseFrom(bytes);
@@ -228,10 +243,9 @@ class WalletBalanceCallback(promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp: lnrpc.Rpc.WalletBalanceResponse = lnrpc.Rpc.WalletBalanceResponse.parseFrom(bytes);
-        Log.v("ReactNativeLND", "WalletBalanceResponse " + resp.toString());
-        this.promise.resolve(resp.toString());
+        this.promise.resolve(respToJson(resp));
       } else {
-        this.promise.resolve(true);
+        this.promise.resolve(false);
       }
     } catch (e: InvalidProtocolBufferException) {
       e.printStackTrace();
@@ -254,19 +268,9 @@ class ChannelBalanceCallback(promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp: lnrpc.Rpc.ChannelBalanceResponse = lnrpc.Rpc.ChannelBalanceResponse.parseFrom(bytes);
-        Log.v("ReactNativeLND", "ChannelBalanceCallback " + resp.toString());
-        val hashMap : HashMap<String, Any> = HashMap<String, Any>();
-        hashMap.put("localBalance", resp.localBalance.sat);
-        hashMap.put("remoteBalance", resp.remoteBalance.sat);
-        hashMap.put("pendingOpenLocalBalance", resp.pendingOpenLocalBalance.sat);
-        hashMap.put("pendingOpenRemoteBalance", resp.pendingOpenRemoteBalance.sat);
-        hashMap.put("unsettledLocalBalance", resp.unsettledLocalBalance.sat);
-        hashMap.put("unsettledRemoteBalance", resp.unsettledRemoteBalance.sat);
-
-        val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
-        this.promise.resolve(gsonPretty.toJson(hashMap));
+        this.promise.resolve(respToJson(resp));
       } else {
-        this.promise.resolve(true);
+        this.promise.resolve(false);
       }
     } catch (e: InvalidProtocolBufferException) {
       e.printStackTrace();
@@ -289,9 +293,7 @@ class GenSeedCallback(promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp: lnrpc.Walletunlocker.GenSeedResponse = lnrpc.Walletunlocker.GenSeedResponse.parseFrom(bytes);
-        val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
-        Log.v("ReactNativeLND", "GenSeedCallback " + gsonPretty.toJson(resp.cipherSeedMnemonicList));
-        this.promise.resolve(gsonPretty.toJson(resp.cipherSeedMnemonicList.joinToString(" ")));
+        this.promise.resolve(resp.cipherSeedMnemonicList.joinToString(" "));
       } else {
         this.promise.resolve(false);
       }
@@ -315,12 +317,7 @@ class SendPaymentSyncCallback(private val promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp: lnrpc.Rpc.SendResponse = lnrpc.Rpc.SendResponse.parseFrom(bytes);
-        val hashMap : HashMap<String, Any> = HashMap<String, Any>();
-        hashMap.put("paymentError", resp.paymentError);
-        hashMap.put("paymentHash", byteArrayToHex(resp.paymentHash.toByteArray()));
-        hashMap.put("paymentHash", byteArrayToHex(resp.paymentPreimage.toByteArray()));
-        val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
-        this.promise.resolve(gsonPretty.toJson(hashMap));
+        this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
       }
@@ -332,13 +329,31 @@ class SendPaymentSyncCallback(private val promise: Promise) : Callback {
 }
 
 
+class AddInvoiceCallback(private val promise: Promise) : Callback {
+  override fun onError(e: Exception) {
+    Log.v("ReactNativeLND", "AddInvoiceCallback err" + e.message);
+    this.promise.resolve(false);
+  }
 
+  override fun onResponse(bytes: ByteArray?) {
+    Log.v("ReactNativeLND", "AddInvoiceCallback ok");
+    try {
+      if (bytes != null) {
+        val resp: lnrpc.Rpc.AddInvoiceResponse = lnrpc.Rpc.AddInvoiceResponse.parseFrom(bytes)
+        this.promise.resolve(respToJson(resp));
+      } else {
+        this.promise.resolve(false);
+      }
+    } catch (e: InvalidProtocolBufferException) {
+      e.printStackTrace();
+      this.promise.resolve(false);
+    }
+  }
+}
 
 fun byteArrayToHex(bytesArg: ByteArray) : String {
   return bytesArg.joinToString("") { String.format("%02X", (it.toInt() and 0xFF)) }.toLowerCase()
 }
-
-
 
 fun hexStringToByteArray(strArg: String) : ByteArray {
   val HEX_CHARS = "0123456789ABCDEF"
@@ -355,4 +370,8 @@ fun hexStringToByteArray(strArg: String) : ByteArray {
   }
 
   return result
+}
+
+fun respToJson(resp: MessageOrBuilder): String {
+  return com.google.protobuf.util.JsonFormat.printer().print(resp);
 }

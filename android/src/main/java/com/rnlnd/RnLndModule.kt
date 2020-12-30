@@ -29,12 +29,12 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   fun start(lndArguments: String, promise: Promise) {
     val dir = ContextCompat.getExternalFilesDirs(reactApplicationContext.applicationContext, null)[0];
     Log.v("ReactNativeLND", "starting LND in " + dir);
-    var argumentsToUse = "--sync-freelist --tlsdisableautofill  --maxpendingchannels=10 --nobootstrap " + //
+    var argumentsToUse = "--sync-freelist --tlsdisableautofill  --maxpendingchannels=10 " + // --nobootstrap
       "--chan-status-sample-interval=5s --minchansize=1000000 --ignore-historical-gossip-filters --rejecthtlc " +
       "--bitcoin.active --bitcoin.mainnet --bitcoin.defaultchanconfs=0 --routing.assumechanvalid " +
       "--protocol.wumbo-channels --rpclisten=127.0.0.1 --norest --nolisten " +
       "--maxbackoff=2s --enable-upfront-shutdown " + // --chan-enable-timeout=10s  --connectiontimeout=15s
-      "--bitcoin.node=neutrino --neutrino.connect=btcd-mainnet.lightning.computer --neutrino.maxpeers=100 " +
+      "--bitcoin.node=neutrino --neutrino.addpeer=btcd-mainnet.lightning.computer --neutrino.maxpeers=100 " +
       "--neutrino.assertfilterheader=660000:08312375fabc082b17fa8ee88443feb350c19a34bb7483f94f7478fa4ad33032 " +
       "--neutrino.feeurl=https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json  --numgraphsyncpeers=0 " +
       "--bitcoin.basefee=100000 --bitcoin.feerate=10000 "; // --chan-disable-timeout=60s
@@ -135,7 +135,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   }
 
   @ReactMethod
-  fun openChannelPsbt(pubkeyHex: String, amountSats: Integer, promise: Promise) {
+  fun openChannelPsbt(pubkeyHex: String, amountSats: Integer, privateChannel: Boolean, promise: Promise) {
     Log.v("ReactNativeLND", "openChannelPsbt");
 
     val pubkey2use: ByteString = ByteString.copyFrom(hexStringToByteArray(pubkeyHex));
@@ -156,6 +156,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
       .setLocalFundingAmount(amountSats.toLong())
       .setNodePubkey(pubkey2use)
       .setFundingShim(fundingshim)
+      .setPrivate(privateChannel)
       .build();
 
     Lndmobile.openChannel(req.toByteArray(), OpenChannelRecvStream(promise));
@@ -227,5 +228,46 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
       .newBuilder()
       .build();
     Lndmobile.genSeed(req.toByteArray(), GenSeedCallback(promise))
+  }
+
+  @ReactMethod
+  fun addInvoice(sat: Int, memo: String, expiry: Int, promise: Promise) {
+    Log.v("ReactNativeLND", "addInvoice");
+    val req: lnrpc.Rpc.Invoice = lnrpc.Rpc.Invoice
+      .newBuilder()
+      .setValue(sat.toLong())
+      .setMemo(memo)
+      .setPrivate(true) // hmm
+      .setExpiry(expiry.toLong())
+      .build();
+    Lndmobile.addInvoice(req.toByteArray(), AddInvoiceCallback(promise))
+  }
+
+  @ReactMethod
+  fun closeChannel(deliveryAddress: String, fundingTxidHex: String, outputIndex: Int, force: Boolean, promise: Promise) {
+    Log.v("ReactNativeLND", "closeChannel");
+    val channelPoint: lnrpc.Rpc.ChannelPoint = lnrpc.Rpc.ChannelPoint
+      .newBuilder()
+      .setFundingTxidStr(fundingTxidHex)
+      .setOutputIndex(outputIndex)
+      .build();
+
+    val req: lnrpc.Rpc.CloseChannelRequest = lnrpc.Rpc.CloseChannelRequest
+      .newBuilder()
+      .setChannelPoint(channelPoint)
+      .setDeliveryAddress(deliveryAddress)
+      .setForce(force)
+      .build();
+    Lndmobile.closeChannel(req.toByteArray(), CloseChannelRecvStream(promise));
+  }
+
+  @ReactMethod
+  fun stopDaemon(promise: Promise) {
+    Log.v("ReactNativeLND", "stopDaemon");
+
+    val req: lnrpc.Rpc.StopRequest = lnrpc.Rpc.StopRequest
+      .newBuilder()
+      .build();
+    Lndmobile.stopDaemon(req.toByteArray(), EmptyResponseBooleanCallback(promise));
   }
 }

@@ -131,4 +131,5 @@ dependencies {
   implementation 'com.google.protobuf:protobuf-java:3.10.0'
   implementation 'com.google.api.grpc:proto-google-common-protos:1.17.0'
   implementation 'com.google.code.gson:gson:2.8.5'
+  implementation 'com.google.protobuf:protobuf-java-util:3.14.0'
 }

@@ -3,6 +3,7 @@ import { NativeModules } from 'react-native';
 type NativeType = {
   multiply(a: number, b: number): Promise<number>;
   start(lndArguments: string): Promise<boolean>;
+  stopDaemon(): Promise<boolean>;
   unlockWallet(password: string): Promise<boolean>;
   initWallet(password: string, mnemonics: string): Promise<boolean>;
   getInfo(): Promise<boolean | string>;
@@ -11,10 +12,13 @@ type NativeType = {
   walletBalance(): Promise<boolean | string>;
   channelBalance(): Promise<boolean | string>;
   connectPeer(host: string, pubkeyHex: string): Promise<boolean>;
-  openChannelPsbt(pubkeyHex: string, amountSats: number): Promise<boolean | string>;
+  openChannelPsbt(pubkeyHex: string, amountSats: number, privateChannel: boolean): Promise<boolean | string>;
   fundingStateStepVerify(chanIdHex: string, psbtHex: string): Promise<boolean | string>;
   fundingStateStepFinalize(chanIdHex: string, psbtHex: string): Promise<boolean | string>;
   genSeed(): Promise<boolean | string>;
+  sendPaymentSync(paymentRequest: string): Promise<boolean | string>;
+  addInvoice(sat: number, memo: string, expiry: number): Promise<boolean | string>;
+  closeChannel(deliveryAddress: string, fundingTxidHex: string, outputIndex: number, force: boolean): Promise<boolean | string>;
 };
 
 const Native: NativeType = NativeModules.RnLnd;
@@ -70,12 +74,16 @@ class RnLndImplementation {
     return Native.multiply(a, b);
   }
 
-  async openChannelPsbt(pubkeyHex: string, amountSats: number): Promise<boolean | object> {
-    return RnLndImplementation.jsonOrBoolean(await Native.openChannelPsbt(pubkeyHex, amountSats));
+  async openChannelPsbt(pubkeyHex: string, amountSats: number, privateChannel: boolean): Promise<boolean | object> {
+    return RnLndImplementation.jsonOrBoolean(await Native.openChannelPsbt(pubkeyHex, amountSats, privateChannel));
   }
 
   start(lndArguments: string): Promise<boolean> {
     return Native.start(lndArguments);
+  }
+
+  stop(): Promise<boolean> {
+    return Native.stopDaemon();
   }
 
   unlockWallet(password: string): Promise<boolean> {
@@ -84,6 +92,18 @@ class RnLndImplementation {
 
   async walletBalance(): Promise<boolean | object> {
     return RnLndImplementation.jsonOrBoolean(await Native.walletBalance());
+  }
+
+  async sendPaymentSync(paymentRequest: string): Promise<boolean | object> {
+    return RnLndImplementation.jsonOrBoolean(await Native.sendPaymentSync(paymentRequest));
+  }
+
+  async addInvoice(sat: number, memo: string, expiry: number): Promise<boolean | object> {
+    return RnLndImplementation.jsonOrBoolean(await Native.addInvoice(sat, memo, expiry));
+  }
+
+  async closeChannel(deliveryAddress: string, fundingTxidHex: string, outputIndex: number, force: boolean): Promise<boolean | object> {
+    return RnLndImplementation.jsonOrBoolean(await Native.closeChannel(deliveryAddress, fundingTxidHex, outputIndex, force));
   }
 }
 
