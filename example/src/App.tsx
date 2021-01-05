@@ -10,7 +10,6 @@ export default function App() {
   const [bolt11, setBolt11] = React.useState<string>('');
 
   React.useEffect(() => {
-    RnLnd.multiply(3, 7).then(setResult);
   }, []);
 
   return (
