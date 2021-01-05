@@ -2,11 +2,25 @@ import Lndmobile
 
 @objc(RnLnd)
 class RnLnd: NSObject {
-    
+
     @objc
-    func start(_ lndArguments: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func start(_ lndArguments: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "start");
-        resolve("")
+        var argumentsToUse = "--sync-freelist --tlsdisableautofill  --maxpendingchannels=10 " + // --nobootstrap
+              "--chan-status-sample-interval=5s --minchansize=1000000 --ignore-historical-gossip-filters --rejecthtlc " +
+              "--bitcoin.active --bitcoin.mainnet --bitcoin.defaultchanconfs=0 --routing.assumechanvalid " +
+              "--protocol.wumbo-channels --rpclisten=127.0.0.1 --norest --nolisten " +
+              "--maxbackoff=2s --enable-upfront-shutdown " + // --chan-enable-timeout=10s  --connectiontimeout=15s
+              "--bitcoin.node=neutrino --neutrino.addpeer=btcd-mainnet.lightning.computer --neutrino.maxpeers=100 " +
+              "--neutrino.assertfilterheader=660000:08312375fabc082b17fa8ee88443feb350c19a34bb7483f94f7478fa4ad33032 " +
+              "--neutrino.feeurl=https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json  --numgraphsyncpeers=0 " +
+              "--bitcoin.basefee=100000 --bitcoin.feerate=10000 "; // --chan-disable-timeout=60s
+
+        if (!lndArguments.isEmpty) {
+              argumentsToUse = lndArguments;
+            }
+        let rpcReadyCallback = StartCallback2()
+        LndmobileStart(argumentsToUse, StartCallback(resolve: resolve), rpcReadyCallback);
     }
     
     @objc
@@ -105,11 +119,11 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func stopDaemon(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func stopDaemon(_ resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "stopDaemon");
-        resolve("")
+        let req = try? Lnrpc_StopRequest().serializedData()
+        LndmobileStopDaemon(req, StartCallback(resolve: resolve))
     }
-    
     
     @objc
     static func requiresMainQueueSetup() -> Bool {
