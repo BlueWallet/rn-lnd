@@ -17,16 +17,33 @@ class RnLnd: NSObject {
               "--bitcoin.basefee=100000 --bitcoin.feerate=10000 "; // --chan-disable-timeout=60s
 
         if (!lndArguments.isEmpty) {
-              argumentsToUse = lndArguments;
-            }
+            argumentsToUse = lndArguments;
+        }
         let rpcReadyCallback = StartCallback2()
         LndmobileStart(argumentsToUse, StartCallback(resolve: resolve), rpcReadyCallback);
     }
     
     @objc
-    func unlockWallet(_ password: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "unlockWallet");
-        resolve("")
+    func unlockWallet(_ password: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+        print("ReactNativeLND", "unlocking wallet with password -->" + password + "<--");
+        /*.
+         val pw: ByteString = ByteString.copyFromUtf8(password);
+            val reqUnlock: lnrpc.Walletunlocker.UnlockWalletRequest = lnrpc.Walletunlocker
+              .UnlockWalletRequest
+              .newBuilder()
+              .setWalletPassword(pw)
+              .build();
+            Lndmobile.unlockWallet(reqUnlock.toByteArray(), UnlockWalletCallback(promise));
+         */
+        var unlockRequest = Lnrpc_UnlockWalletRequest()
+        guard let passwordData = password.data(using: .utf8) else {
+            return resolve(false)
+        }
+        unlockRequest.walletPassword = passwordData
+        guard let serializedData = try? unlockRequest.serializedData() else {
+            return resolve(false)
+        }
+        LndmobileUnlockWallet(serializedData, StartCallback(resolve: resolve))
     }
     
     @objc
@@ -121,8 +138,9 @@ class RnLnd: NSObject {
     @objc
     func stopDaemon(_ resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "stopDaemon");
-        let req = try? Lnrpc_StopRequest().serializedData()
-        LndmobileStopDaemon(req, StartCallback(resolve: resolve))
+        let req = Lnrpc_StopRequest()
+        let serializedReq = try? req.serializedData()
+        LndmobileStopDaemon(serializedReq, StartCallback(resolve: resolve))
     }
     
     @objc
