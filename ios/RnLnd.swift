@@ -50,9 +50,10 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func getInfo(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func getInfo(_ resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "getInfo");
-        resolve("")
+        let request = Lnrpc_GetInfoRequest()
+        LndmobileGetInfo(try? request.serializedData(), GetInfoCallback(resolve: resolve))
     }
     
     @objc

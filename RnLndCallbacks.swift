@@ -77,3 +77,24 @@ class InitWalletCallback: NSObject, LndmobileCallbackProtocol {
         resolve(true)
     }
 }
+
+class GetInfoCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "GetInfoCallback error \(String(describing: p0?.localizedDescription))");
+        resolve(false)
+    }
+
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "GetInfoCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_GetInfoResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(true)
+    }
+}
