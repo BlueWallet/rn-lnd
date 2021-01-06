@@ -26,15 +26,6 @@ class RnLnd: NSObject {
     @objc
     func unlockWallet(_ password: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "unlocking wallet with password -->" + password + "<--");
-        /*.
-         val pw: ByteString = ByteString.copyFromUtf8(password);
-            val reqUnlock: lnrpc.Walletunlocker.UnlockWalletRequest = lnrpc.Walletunlocker
-              .UnlockWalletRequest
-              .newBuilder()
-              .setWalletPassword(pw)
-              .build();
-            Lndmobile.unlockWallet(reqUnlock.toByteArray(), UnlockWalletCallback(promise));
-         */
         var unlockRequest = Lnrpc_UnlockWalletRequest()
         guard let passwordData = password.data(using: .utf8) else {
             return resolve(false)
@@ -47,9 +38,15 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func initWallet(_ password: String, mnemonics: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func initWallet(_ password: String, mnemonics: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "initWallet");
-        resolve("")
+        guard let passwordData = password.data(using: .utf8) else { return resolve(false) }
+        let cipherSeed = mnemonics.components(separatedBy: " ")
+        var request = Lnrpc_InitWalletRequest()
+        request.walletPassword = passwordData
+        request.cipherSeedMnemonic = cipherSeed
+
+        LndmobileInitWallet(try? request.serializedData(), InitWalletCallback(resolve: resolve))
     }
     
     @objc
