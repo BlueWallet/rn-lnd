@@ -109,7 +109,12 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func sendPaymentSync(_ paymentRequest: String, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    func sendPaymentSync(_ paymentRequest: String, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "sendPaymentSync");
+        var request = Lnrpc_SendRequest()
+        request.paymentRequest = paymentRequest
+        LndmobileSendPaymentSync(try? request.serializedData(), SendPaymentSyncCallback(resolve: resolve))
+        
     }
     
     @objc
