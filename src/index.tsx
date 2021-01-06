@@ -1,7 +1,6 @@
 import { NativeModules } from 'react-native';
 
 type NativeType = {
-  multiply(a: number, b: number): Promise<number>;
   start(lndArguments: string): Promise<boolean>;
   stopDaemon(): Promise<boolean>;
   unlockWallet(password: string): Promise<boolean>;
@@ -68,10 +67,6 @@ class RnLndImplementation {
 
   async pendingChannels(): Promise<boolean | object> {
     return RnLndImplementation.jsonOrBoolean(await Native.pendingChannels());
-  }
-
-  multiply(a: number, b: number): Promise<number> {
-    return Native.multiply(a, b);
   }
 
   async openChannelPsbt(pubkeyHex: string, amountSats: number, privateChannel: boolean): Promise<boolean | object> {
