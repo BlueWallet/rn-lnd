@@ -25,6 +25,7 @@
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRnLnd.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRnLnd.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D283A15259E2FE900FA67FD /* compiled_lnd */ = {isa = PBXFileReference; lastKnownFileType = folder; path = compiled_lnd; sourceTree = "<group>"; };
+		6D587BC125A60DB6002F15F2 /* RnLndCallbacks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RnLndCallbacks.swift; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* RnLnd.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RnLnd.m; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* RnLnd-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RnLnd-Bridging-Header.h"; sourceTree = "<group>"; };
 		F4FF95D6245B92E800C19C63 /* RnLnd.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RnLnd.swift; sourceTree = "<group>"; };
@@ -55,6 +56,7 @@
 				F4FF95D6245B92E800C19C63 /* RnLnd.swift */,
 				B3E7B5891CC2AC0600A0062D /* RnLnd.m */,
 				F4FF95D5245B92E700C19C63 /* RnLnd-Bridging-Header.h */,
+				6D587BC125A60DB6002F15F2 /* RnLndCallbacks.swift */,
 				6D283A15259E2FE900FA67FD /* compiled_lnd */,
 				134814211AA4EA7D00B7C361 /* Products */,
 			);
