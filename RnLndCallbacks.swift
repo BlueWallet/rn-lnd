@@ -98,3 +98,45 @@ class GetInfoCallback: NSObject, LndmobileCallbackProtocol {
         resolve(true)
     }
 }
+
+class PendingChannelsCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "PendingChannelsCallback error \(String(describing: p0?.localizedDescription))");
+        resolve(false)
+    }
+
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "PendingChannelsCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_PendingChannelsResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(true)
+    }
+}
+
+class ListChannelsCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "ListChannelsCallback error \(String(describing: p0?.localizedDescription))");
+        resolve(false)
+    }
+
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "ListChannelsCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_ListChannelsResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(true)
+    }
+}

@@ -57,15 +57,17 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func listChannels(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func listChannels(_ resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "listChannels");
-        resolve("")
+        let request = Lnrpc_ListChannelsRequest()
+        LndmobileListChannels(try? request.serializedData(), ListChannelsCallback(resolve: resolve))
     }
     
     @objc
-    func pendingChannels(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func pendingChannels(_ resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "pendingChannels");
-        resolve("")
+        let request = Lnrpc_PendingChannelsRequest()
+        LndmobilePendingChannels(try? request.serializedData(), PendingChannelsCallback(resolve: resolve))
     }
     
     @objc
