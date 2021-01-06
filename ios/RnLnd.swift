@@ -101,9 +101,10 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func channelBalance(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func channelBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "channelBalance");
-        resolve("")
+        let request = Lnrpc_ChannelBalanceRequest()
+        LndmobileChannelBalance(try? request.serializedData(), ChannelBalanceCallback(resolve: resolve))
     }
     
     @objc
@@ -133,7 +134,6 @@ class RnLnd: NSObject {
     @objc
     func closeChannel(_ deliveryAddress: String, fundingTxidHex: String, outputIndex: Int, force: Bool,  resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         print("ReactNativeLND", "closeChannel");
-        resolve("")
         
     }
     

@@ -72,8 +72,8 @@ class InitWalletCallback: NSObject, LndmobileCallbackProtocol {
 
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "InitWalletCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_InitWalletResponse(serializedData: p0) else { return resolve(false) }
-        print("ReactNativeLND resp: \(response.textFormatString())")
+        guard let p0 = p0, let response = try? Lnrpc_InitWalletResponse(serializedData: p0), let responseJSON = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(responseJSON)")
         resolve(true)
     }
 }
@@ -136,6 +136,27 @@ class ListChannelsCallback: NSObject, LndmobileCallbackProtocol {
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "ListChannelsCallback ok")
         guard let p0 = p0, let response = try? Lnrpc_ListChannelsResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(true)
+    }
+}
+
+class ChannelBalanceCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "ChannelBalanceCallback error \(String(describing: p0?.localizedDescription))");
+        resolve(false)
+    }
+
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "ChannelBalanceCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_ChannelBalanceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(true)
     }
