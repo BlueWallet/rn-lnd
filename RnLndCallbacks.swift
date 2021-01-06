@@ -37,6 +37,28 @@ class StartCallback2: NSObject, LndmobileCallbackProtocol {
     }
 }
 
+
+class UnlockWalletCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "UnlockWalletCallback error \(String(describing: p0?.localizedDescription))");
+        resolve(false)
+    }
+
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "UnlockWalletCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_UnlockWalletResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(true)
+    }
+}
+
 class GenSeedCallback: NSObject, LndmobileCallbackProtocol {
     
     var resolve: RCTPromiseResolveBlock

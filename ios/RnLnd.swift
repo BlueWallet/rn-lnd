@@ -34,7 +34,7 @@ class RnLnd: NSObject {
         guard let serializedData = try? unlockRequest.serializedData() else {
             return resolve(false)
         }
-        LndmobileUnlockWallet(serializedData, StartCallback(resolve: resolve))
+        LndmobileUnlockWallet(serializedData, UnlockWalletCallback(resolve: resolve))
     }
     
     @objc
@@ -199,7 +199,7 @@ class RnLnd: NSObject {
         print("ReactNativeLND", "stopDaemon");
         let req = Lnrpc_StopRequest()
         let serializedReq = try? req.serializedData()
-        LndmobileStopDaemon(serializedReq, StartCallback(resolve: resolve))
+        LndmobileStopDaemon(serializedReq, EmptyResponseBooleanCallback(resolve: resolve))
     }
     
     @objc
