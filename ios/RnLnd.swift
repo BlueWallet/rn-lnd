@@ -117,9 +117,11 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func genSeed(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func genSeed(_ resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "genSeed");
-        resolve("")
+        let request = Lnrpc_GenSeedRequest()
+        LndmobileGenSeed(try? request.serializedData()
+                         , GenSeedCallback(resolve: resolve))
     }
     
     @objc
