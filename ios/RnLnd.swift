@@ -95,9 +95,10 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func walletBalance(_ resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
+    func walletBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "walletBalance");
-        resolve("")
+        let request = Lnrpc_WalletBalanceRequest()
+        LndmobileWalletBalance(try? request.serializedData(), WalletBalanceCallback(resolve: resolve))
     }
     
     @objc
@@ -126,9 +127,14 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func addInvoice(_ sat: Int, memo: String, expiry: Int, resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    func addInvoice(_ sat: Int, memo: String, expiry: Int, resolve: @escaping RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
         print("ReactNativeLND", "addInvoice");
-        resolve("")
+        var request = Lnrpc_Invoice()
+        request.value = Int64(sat)
+        request.memo = memo
+        request.private = true
+        request.expiry = Int64(expiry)
+        LndmobileAddInvoice(try? request.serializedData(), AddInvoiceCallback(resolve: resolve))
     }
     
     @objc

@@ -161,3 +161,46 @@ class ChannelBalanceCallback: NSObject, LndmobileCallbackProtocol {
         resolve(true)
     }
 }
+
+class WalletBalanceCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "WalletBalanceCallback error \(String(describing: p0?.localizedDescription))");
+        resolve(false)
+    }
+
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "WalletBalanceCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_WalletBalanceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(true)
+    }
+}
+
+class AddInvoiceCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "AddInvoiceCallback error \(String(describing: p0?.localizedDescription))");
+        resolve(false)
+    }
+
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "AddInvoiceCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_AddInvoiceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(true)
+    }
+}
+
