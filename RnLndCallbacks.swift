@@ -225,6 +225,91 @@ class SendPaymentSyncCallback: NSObject, LndmobileCallbackProtocol {
     }
 }
 
+class EmptyResponseBooleanCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "callback onError");
+        resolve(false)
+    }
+
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "callback success")
+        resolve(true)
+    }
+}
+
+
+class FundingStateStepCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "FundingStateStepCallback error \(String(describing: p0?.localizedDescription))");
+        resolve(false)
+    }
+
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "FundingStateStepCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_FundingStateStepResp(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(true)
+    }
+}
+
+class OpenChannelRecvStream: LndmobileRecvStream {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+        super.init()
+    }
+    
+    override func onError(_ p0: Error?) {
+        print("ReactNativeLND", "OpenChannelRecvStream error \(String(describing: p0?.localizedDescription))");
+        resolve(false)
+    }
+
+    override func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "OpenChannelRecvStream ok")
+        guard let p0 = p0, let response = try? Lnrpc_OpenStatusUpdate(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(true)
+    }
+}
+
+class CloseChannelRecvStream: LndmobileRecvStream {
+    
+    var resolve: RCTPromiseResolveBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock) {
+        self.resolve = resolve
+        super.init()
+    }
+    
+    override func onError(_ p0: Error?) {
+        print("ReactNativeLND", "CloseChannelRecvStream error \(String(describing: p0?.localizedDescription))");
+        resolve(false)
+    }
+
+    override func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "CloseChannelRecvStream ok")
+        guard let p0 = p0, let response = try? Lnrpc_CloseStatusUpdate(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(true)
+    }
+}
+
 
 
 
