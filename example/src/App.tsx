@@ -1,6 +1,5 @@
 import * as React from 'react';
-
-import { StyleSheet, View, ScrollView, TextInput, Text, Button } from 'react-native';
+import { StyleSheet, ScrollView, TextInput, Text, Button, SafeAreaView } from 'react-native';
 import RnLnd from 'rn-lnd';
 
 export default function App() {
@@ -13,8 +12,8 @@ export default function App() {
   }, []);
 
   return (
-    <ScrollView>
-      <View style={styles.container}>
+    <SafeAreaView style={styles.container} >
+    <ScrollView contentContainerStyle={styles.container}>
         <Text>Result: {result}</Text>
 
         <Button
@@ -134,8 +133,8 @@ export default function App() {
             RnLnd.closeChannel('13HaCAB4jf7FYSZexJxoczyDDnutzZigjS', '9505944c68c879663650a1d7dcd4ae3888fcc3434a9ebf26bbcc4553426157d6', 0, false).then(console.warn);
           }}
         />
-      </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
