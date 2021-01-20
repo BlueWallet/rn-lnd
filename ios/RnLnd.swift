@@ -4,6 +4,12 @@ public struct LndError: Error {
   let msg: String
 }
 
+extension LndError: LocalizedError {
+  public var errorDescription: String? {
+    return NSLocalizedString(msg, comment: "")
+  }
+}
+
 // Used for anyone who wants to use this class
 typealias Callback = (Data?, Error?) -> Void
 // typealias StreamCallback = (Data?, Error?) -> Void

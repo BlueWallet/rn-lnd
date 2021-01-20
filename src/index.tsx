@@ -36,7 +36,7 @@ class RnLndImplementation {
     }
   }
 
-  async sendCommand({ request, response, method, options }): Promise<object> {
+  async sendCommand({ request, response, method, options = {} }): Promise<object> {
     const instance = request.create(options);
     const payload = base64.fromByteArray(request.encode(instance).finish());
     const b64 = await Native.sendCommand(method, payload);
@@ -47,18 +47,17 @@ class RnLndImplementation {
   async getInfo2(): Promise<lnrpc.GetInfoResponse> {
     const response = await this.sendCommand<lnrpc.IGetInfoRequest, lnrpc.GetInfoRequest, lnrpc.GetInfoResponse>({
       method: 'GetInfo',
-      options: {},
       request: lnrpc.GetInfoRequest,
       response: lnrpc.GetInfoResponse,
     });
     return response;
   }
 
-  async getTransactions(options): Promise<lnrpc.GetInfoResponse> {
+  async getTransactions(options: lnrpc.IGetTransactionsRequest): Promise<lnrpc.GetInfoResponse> {
     const response = await this.sendCommand<lnrpc.IGetTransactionsRequest, lnrpc.GetTransactionsRequest, lnrpc.TransactionDetails>({
       method: 'GetTransactions',
       options,
-      request: lnrpc.GetInfoRequest,
+      request: lnrpc.GetTransactionsRequest,
       response: lnrpc.TransactionDetails,
     });
     return response;
