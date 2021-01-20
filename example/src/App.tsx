@@ -3,18 +3,26 @@ import { StyleSheet, ScrollView, TextInput, Text, Button, SafeAreaView } from 'r
 import RnLnd from 'rn-lnd';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  const [result, setResult] = React.useState<number | undefined>(); // eslint-disable-line
   const [chanIdHex, setChanIdHex] = React.useState<string>('');
   const [psbtHex, setPsbtHex] = React.useState<string>('');
   const [bolt11, setBolt11] = React.useState<string>('');
 
   React.useEffect(() => {
+    global.lnd = RnLnd;
   }, []);
 
   return (
-    <SafeAreaView style={styles.container} >
-    <ScrollView contentContainerStyle={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.container}>
         <Text>Result: {result}</Text>
+
+        <Button
+          title="ping"
+          onPress={() => {
+            RnLnd.ping('kkkk').then(console.info);
+          }}
+        />
 
         <Button
           title="Start LND"
@@ -133,7 +141,7 @@ export default function App() {
             RnLnd.closeChannel('13HaCAB4jf7FYSZexJxoczyDDnutzZigjS', '9505944c68c879663650a1d7dcd4ae3888fcc3434a9ebf26bbcc4553426157d6', 0, false).then(console.warn);
           }}
         />
-    </ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }

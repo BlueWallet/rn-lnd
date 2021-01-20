@@ -21,6 +21,7 @@ type NativeType = {
 };
 
 const Native: NativeType = NativeModules.RnLnd;
+global.Native = Native;
 
 class RnLndImplementation {
   static jsonOrBoolean(str: string | boolean) {
@@ -31,6 +32,10 @@ class RnLndImplementation {
     } catch (_) {
       return false;
     }
+  }
+
+  async sendCommand(method: string, payload: string): Promise<object> {
+    return await Native.sendCommand(method, payload);
   }
 
   async channelBalance(): Promise<boolean | object> {

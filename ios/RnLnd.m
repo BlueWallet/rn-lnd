@@ -21,5 +21,12 @@ RCT_EXTERN_METHOD(genSeed:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseReje
 RCT_EXTERN_METHOD(addInvoice:(NSInteger)sat memo:(NSString *)memo expiry:(NSInteger)expiry resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(closeChannel:(NSString *)deliveryAddress fundingTxidHex:(NSString *)fundingTxidHex outputIndex:(NSInteger)outputIndex force:(BOOL)force resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(stopDaemon:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+// RCT_EXTERN_METHOD(sendCommand:(NSString *)method (NSString *)payload resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(
+  sendCommand: (NSString *)method
+  payload: (NSString *)payload
+  resolver: (RCTPromiseResolveBlock)resolve
+  rejecter: (RCTPromiseRejectBlock)reject
+)
 
 @end
