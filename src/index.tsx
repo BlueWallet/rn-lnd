@@ -1,5 +1,7 @@
 import { NativeModules } from 'react-native';
 import * as base64 from 'base64-js';
+import type * as $protobuf from 'protobufjs';
+
 import { lnrpc } from './proto';
 
 type NativeType = {
@@ -20,10 +22,27 @@ type NativeType = {
   sendPaymentSync(paymentRequest: string): Promise<boolean | string>;
   addInvoice(sat: number, memo: string, expiry: number): Promise<boolean | string>;
   closeChannel(deliveryAddress: string, fundingTxidHex: string, outputIndex: number, force: boolean): Promise<boolean | string>;
+  sendCommand(method: string, payload: string): Promise<{ data: string }>;
 };
 
+export interface ISendRequestClass<IReq, Req> {
+  create: (options: IReq) => Req;
+  encode: (request: Req) => $protobuf.Writer;
+}
+
+export interface ISendResponseClass<Res> {
+  decode: (reader: $protobuf.Reader | Uint8Array) => Res;
+  toObject(message: Res, options?: $protobuf.IConversionOptions): { [k: string]: any };
+}
+
+export interface ISyncCommandOptions<IReq, Req, Res> {
+  request: ISendRequestClass<IReq, Req>;
+  response: ISendResponseClass<Res>;
+  method: string;
+  options: IReq;
+}
+
 const Native: NativeType = NativeModules.RnLnd;
-global.Native = Native;
 
 class RnLndImplementation {
   static jsonOrBoolean(str: string | boolean) {
@@ -36,7 +55,7 @@ class RnLndImplementation {
     }
   }
 
-  async sendCommand({ request, response, method, options = {} }): Promise<object> {
+  async sendCommand <IReq, Req, Res>({ request, response, method, options}: ISyncCommandOptions<IReq, Req, Res>): Promise<Res> {
     const instance = request.create(options);
     const payload = base64.fromByteArray(request.encode(instance).finish());
     const b64 = await Native.sendCommand(method, payload);
@@ -44,16 +63,17 @@ class RnLndImplementation {
     return dec;
   }
 
-  async getInfo2(): Promise<lnrpc.GetInfoResponse> {
+  async getInfo2() {
     const response = await this.sendCommand<lnrpc.IGetInfoRequest, lnrpc.GetInfoRequest, lnrpc.GetInfoResponse>({
       method: 'GetInfo',
+      options: {},
       request: lnrpc.GetInfoRequest,
       response: lnrpc.GetInfoResponse,
     });
     return response;
   }
 
-  async getTransactions(options: lnrpc.IGetTransactionsRequest): Promise<lnrpc.GetInfoResponse> {
+  async getTransactions(options: lnrpc.IGetTransactionsRequest) {
     const response = await this.sendCommand<lnrpc.IGetTransactionsRequest, lnrpc.GetTransactionsRequest, lnrpc.TransactionDetails>({
       method: 'GetTransactions',
       options,
