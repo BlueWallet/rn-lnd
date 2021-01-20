@@ -18,13 +18,6 @@ export default function App() {
         <Text>Result: {result}</Text>
 
         <Button
-          title="ping"
-          onPress={() => {
-            RnLnd.ping('kkkk').then(console.info);
-          }}
-        />
-
-        <Button
           title="Start LND"
           onPress={() => {
             RnLnd.start('').then(console.warn);
@@ -58,6 +51,13 @@ export default function App() {
           title="getInfo"
           onPress={() => {
             RnLnd.getInfo().then(console.warn);
+          }}
+        />
+
+        <Button
+          title="getInfo2"
+          onPress={() => {
+            RnLnd.getInfo2().then(console.info).catch(console.warn);
           }}
         />
 
@@ -139,6 +139,13 @@ export default function App() {
           title="closeChannel"
           onPress={() => {
             RnLnd.closeChannel('13HaCAB4jf7FYSZexJxoczyDDnutzZigjS', '9505944c68c879663650a1d7dcd4ae3888fcc3434a9ebf26bbcc4553426157d6', 0, false).then(console.warn);
+          }}
+        />
+
+        <Button
+          title="GetTransactions"
+          onPress={() => {
+            RnLnd.getTransactions({ startHeight: 0, endHeight: 100 }).then(console.info).catch(console.warn);
           }}
         />
       </ScrollView>

@@ -34,55 +34,32 @@ class LndmobileCallback: NSObject, LndmobileCallbackProtocol {
 class RnLnd: NSObject {
     static let syncMethods = [
         "GetInfo": { bytes, cb in LndmobileGetInfo(bytes, cb) },
+        "GetTransactions": { bytes, cb in LndmobileGetTransactions(bytes, cb) },
     ]
 
     @objc(sendCommand:payload:resolver:rejecter:)
     func sendCommand(_ method: String, payload: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-    // @objc
-    // func sendCommand(_ method: String, _ payload: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
       let block = RnLnd.syncMethods[method]
 
       print("sendCommand", method, payload)
-      // NSLog("sendCommand " + method + " " + payload)
 
       let callback: Callback = { (data, error) in
-        if let e = error {
-          reject("error", e.localizedDescription, e)
-          return
-        }
-        resolve([
-          "data": data?.base64EncodedString()
-        ])
+          if let e = error {
+              reject("error", e.localizedDescription, e)
+              return
+          }
+          resolve([
+              "data": data?.base64EncodedString()
+          ])
       }
 
       if block == nil {
-        // NSLog("method not found" + method)
-        callback(nil, LndError(msg: "Lnd method not found: " + method))
-        // let e = LndError(msg: "Lnd method not found: " + method)
-        // reject("error", e.localizedDescription, e)
-        return
+          callback(nil, LndError(msg: "Lnd method not found: " + method))
+          return
       }
 
       let bytes = Data(base64Encoded: payload, options: [])
-      // block?(bytes, LndmobileCallback(method: method, callback: callback))
       block?(bytes, LndmobileCallback(method: method, callback: callback))
-      // resolve("RESOLVE")
-
-    // Lnd.shared.sendCommand(
-    //   method,
-    //   payload: payload
-    // ) { (data, error) in
-    //   if let e = error {
-    //     reject("error", e.localizedDescription, e)
-    //     return
-    //   }
-    //   resolve([
-    //     "data": data?.base64EncodedString()
-    //   ])
-    // }
-
-
-
     }
 
     @objc

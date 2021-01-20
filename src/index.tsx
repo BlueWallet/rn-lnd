@@ -1,4 +1,6 @@
 import { NativeModules } from 'react-native';
+import * as base64 from 'base64-js';
+import { lnrpc } from './proto';
 
 type NativeType = {
   start(lndArguments: string): Promise<boolean>;
@@ -34,8 +36,32 @@ class RnLndImplementation {
     }
   }
 
-  async sendCommand(method: string, payload: string): Promise<object> {
-    return await Native.sendCommand(method, payload);
+  async sendCommand({ request, response, method, options }): Promise<object> {
+    const instance = request.create(options);
+    const payload = base64.fromByteArray(request.encode(instance).finish());
+    const b64 = await Native.sendCommand(method, payload);
+    const dec = response.decode(base64.toByteArray(b64.data || ''));
+    return dec;
+  }
+
+  async getInfo2(): Promise<lnrpc.GetInfoResponse> {
+    const response = await this.sendCommand<lnrpc.IGetInfoRequest, lnrpc.GetInfoRequest, lnrpc.GetInfoResponse>({
+      method: 'GetInfo',
+      options: {},
+      request: lnrpc.GetInfoRequest,
+      response: lnrpc.GetInfoResponse,
+    });
+    return response;
+  }
+
+  async getTransactions(options): Promise<lnrpc.GetInfoResponse> {
+    const response = await this.sendCommand<lnrpc.IGetTransactionsRequest, lnrpc.GetTransactionsRequest, lnrpc.TransactionDetails>({
+      method: 'GetTransactions',
+      options,
+      request: lnrpc.GetInfoRequest,
+      response: lnrpc.TransactionDetails,
+    });
+    return response;
   }
 
   async channelBalance(): Promise<boolean | object> {
