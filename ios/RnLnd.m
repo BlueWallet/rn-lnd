@@ -1,5 +1,6 @@
 // RnLnd.m
 #import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 
 @interface RCT_EXTERN_MODULE(RnLnd, NSObject)
 
@@ -24,6 +25,20 @@ RCT_EXTERN_METHOD(stopDaemon:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseR
 RCT_EXTERN_METHOD(
   sendCommand: (NSString *)method
   payload: (NSString *)payload
+  resolver: (RCTPromiseResolveBlock)resolve
+  rejecter: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+  sendStreamCommand: (NSString *)method
+  payload: (NSString *)payload
+  streamOnlyOnce: (BOOL)streamOnlyOnce
+  resolver: (RCTPromiseResolveBlock)resolve
+  rejecter: (RCTPromiseRejectBlock)reject
+)
+
+RCT_EXTERN_METHOD(
+  ping: (NSString *)method
   resolver: (RCTPromiseResolveBlock)resolve
   rejecter: (RCTPromiseRejectBlock)reject
 )

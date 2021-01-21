@@ -1,4 +1,4 @@
-import { NativeModules } from 'react-native';
+import { NativeModules, NativeEventEmitter } from 'react-native';
 import * as base64 from 'base64-js';
 import type * as $protobuf from 'protobufjs';
 
@@ -23,6 +23,7 @@ type NativeType = {
   addInvoice(sat: number, memo: string, expiry: number): Promise<boolean | string>;
   closeChannel(deliveryAddress: string, fundingTxidHex: string, outputIndex: number, force: boolean): Promise<boolean | string>;
   sendCommand(method: string, payload: string): Promise<{ data: string }>;
+  sendStreamCommand(method: string, payload: string, streamOnlyOnce: boolean): Promise<string>;
 };
 
 export interface ISendRequestClass<IReq, Req> {
@@ -42,7 +43,18 @@ export interface ISyncCommandOptions<IReq, Req, Res> {
   options: IReq;
 }
 
+export interface IStreamCommandOptions<IReq, Req> {
+  request: ISendRequestClass<IReq, Req>;
+  method: string;
+  options: IReq;
+}
+
 const Native: NativeType = NativeModules.RnLnd;
+global.Native = Native;
+
+const RnLndEmitter = new NativeEventEmitter(NativeModules.RnLnd);
+const subscription1 = RnLndEmitter.addListener('SubscribeTransactions', (...a) => console.log('SubscribeTransactions', ...a));
+const subscription2 = RnLndEmitter.addListener('pong', (...a) => console.log('pong event', ...a));
 
 class RnLndImplementation {
   static jsonOrBoolean(str: string | boolean) {
@@ -55,12 +67,24 @@ class RnLndImplementation {
     }
   }
 
-  async sendCommand <IReq, Req, Res>({ request, response, method, options}: ISyncCommandOptions<IReq, Req, Res>): Promise<Res> {
+  async ping() {
+    const res = await Native.ping('pong')
+    return res
+  }
+
+  async sendCommand<IReq, Req, Res>({ request, response, method, options }: ISyncCommandOptions<IReq, Req, Res>): Promise<Res> {
     const instance = request.create(options);
     const payload = base64.fromByteArray(request.encode(instance).finish());
     const b64 = await Native.sendCommand(method, payload);
     const dec = response.decode(base64.toByteArray(b64.data || ''));
     return dec;
+  }
+
+  async sendStreamCommand<IReq, Req>({ request, method, options }: IStreamCommandOptions<IReq, Req>, streamOnlyOnce: boolean = false): Promise<string> {
+    const instance = request.create(options);
+    const payload = base64.fromByteArray(request.encode(instance).finish());
+    const response = await Native.sendStreamCommand(method, payload, streamOnlyOnce);
+    return response;
   }
 
   async getInfo2() {
@@ -80,6 +104,28 @@ class RnLndImplementation {
       request: lnrpc.GetTransactionsRequest,
       response: lnrpc.TransactionDetails,
     });
+    return response;
+  }
+
+  async newAddress() {
+    const response = await this.sendCommand<lnrpc.INewAddressRequest, lnrpc.NewAddressRequest, lnrpc.NewAddressResponse>({
+      method: 'NewAddress',
+      options: {},
+      request: lnrpc.NewAddressRequest,
+      response: lnrpc.NewAddressResponse,
+    });
+    return response;
+  }
+
+  async subscribeTransactions() {
+    const response = await this.sendStreamCommand<lnrpc.IGetTransactionsRequest, lnrpc.GetTransactionsRequest>(
+      {
+        method: 'SubscribeTransactions',
+        options: {},
+        request: lnrpc.GetTransactionsRequest,
+      },
+      true
+    );
     return response;
   }
 

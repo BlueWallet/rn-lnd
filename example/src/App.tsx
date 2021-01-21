@@ -145,7 +145,21 @@ export default function App() {
         <Button
           title="GetTransactions"
           onPress={() => {
-            RnLnd.getTransactions({ startHeight: 0, endHeight: 100 }).then(console.info).catch(console.warn);
+            RnLnd.getTransactions().then(console.info).catch(console.warn);
+          }}
+        />
+
+        <Button
+          title="SubscribeTransactions"
+          onPress={() => {
+            RnLnd.subscribeTransactions().then(console.info).catch(console.warn);
+          }}
+        />
+
+        <Button
+          title="ping"
+          onPress={() => {
+            RnLnd.ping().then(console.info).catch(console.warn);
           }}
         />
       </ScrollView>

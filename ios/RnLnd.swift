@@ -1,97 +1,193 @@
+// import Foundation
 import Lndmobile
+import React
 
 public struct LndError: Error {
-  let msg: String
+    let msg: String
 }
 
 extension LndError: LocalizedError {
-  public var errorDescription: String? {
-    return NSLocalizedString(msg, comment: "")
-  }
+    public var errorDescription: String? {
+        return NSLocalizedString(msg, comment: "")
+    }
 }
 
 // Used for anyone who wants to use this class
 typealias Callback = (Data?, Error?) -> Void
-// typealias StreamCallback = (Data?, Error?) -> Void
+typealias StreamCallback = (Data?, Error?) -> Void
 
 // Used internally in this class to deal with Lndmobile/Go
 class LndmobileCallback: NSObject, LndmobileCallbackProtocol {
-  var method: String
-  var callback: Callback
+    var method: String
+    var callback: Callback
 
-  init(method: String, callback: @escaping Callback) {
-    self.method = method
-    self.callback = callback
-  }
+    init(method: String, callback: @escaping Callback) {
+        self.method = method
+        self.callback = callback
+    }
 
-  func onResponse(_ p0: Data?) {
-    self.callback(p0, nil)
-  }
+    func onResponse(_ p0: Data?) {
+        callback(p0, nil)
+    }
 
-  func onError(_ p0: Error?) {
-    NSLog("Inside onError " + self.method)
-    NSLog(p0?.localizedDescription ?? "unknown error")
-    self.callback(nil, p0)
-  }
+    func onError(_ p0: Error?) {
+        NSLog("Inside onError " + method)
+        NSLog(p0?.localizedDescription ?? "unknown error")
+        callback(nil, p0)
+    }
+}
+
+class LndmobileReceiveStream: NSObject, LndmobileRecvStreamProtocol {
+    var method: String
+    var callback: StreamCallback
+
+    init(method: String, callback: @escaping StreamCallback) {
+        self.method = method
+        self.callback = callback
+    }
+
+    func onResponse(_ p0: Data?) {
+        callback(p0, nil)
+    }
+
+    func onError(_ p0: Error?) {
+        NSLog("LndmobileReceiveStream onError " + method)
+        NSLog(p0?.localizedDescription ?? "unknown error")
+        callback(nil, p0)
+    }
 }
 
 @objc(RnLnd)
 
-class RnLnd: NSObject {
+// class RnLnd: NSObject, RCTEventEmitter {
+class RnLnd: RCTEventEmitter {
     static let syncMethods = [
         "GetInfo": { bytes, cb in LndmobileGetInfo(bytes, cb) },
         "GetTransactions": { bytes, cb in LndmobileGetTransactions(bytes, cb) },
+        "NewAddress": { bytes, cb in LndmobileNewAddress(bytes, cb) },
+    ]
+
+    static let streamMethods = [
+        "SubscribeTransactions": { req, cb in LndmobileSubscribeTransactions(req, cb) },
     ]
 
     @objc(sendCommand:payload:resolver:rejecter:)
     func sendCommand(_ method: String, payload: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
-      let block = RnLnd.syncMethods[method]
+        let block = RnLnd.syncMethods[method]
 
-      print("sendCommand", method, payload)
+        print("sendCommand", method, payload)
 
-      let callback: Callback = { (data, error) in
-          if let e = error {
-              reject("error", e.localizedDescription, e)
-              return
-          }
-          resolve([
-              "data": data?.base64EncodedString()
-          ])
-      }
+        let callback: Callback = { data, error in
+            if let e = error {
+                reject("error", e.localizedDescription, e)
+                return
+            }
+            resolve([
+                "data": data?.base64EncodedString(),
+            ])
+        }
 
-      if block == nil {
-          callback(nil, LndError(msg: "Lnd method not found: " + method))
-          return
-      }
+        if block == nil {
+            callback(nil, LndError(msg: "Lnd method not found: " + method))
+            return
+        }
 
-      let bytes = Data(base64Encoded: payload, options: [])
-      block?(bytes, LndmobileCallback(method: method, callback: callback))
+        let bytes = Data(base64Encoded: payload, options: [])
+        block?(bytes, LndmobileCallback(method: method, callback: callback))
+    }
+
+    @objc(sendStreamCommand:payload:streamOnlyOnce:resolver:rejecter:)
+    func sendStreamCommand(_ method: String, payload: String, streamOnlyOnce _: Bool, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter _: @escaping RCTPromiseRejectBlock) {
+        // Lnd.shared.sendStreamCommand(
+        //     method,
+        //     payload: payload,
+        //     streamOnlyOnce: streamOnlyOnce
+        // )
+
+        print("sendStreamCommand", method, payload)
+
+        let callback: Callback = { data, error in
+            if let e = error {
+                // TODO(hsjoberg): handle error...
+                NSLog("stream error")
+                NSLog(e.localizedDescription)
+            }
+            self.sendEvent(
+                withName: method,
+                body: ["data": data?.base64EncodedString()]
+            )
+        }
+
+        // if activeStreams.contains(method) {
+        //     NSLog("Attempting to stream " + method + " twice, not allowing")
+        //     return
+        // } else {
+        //     activeStreams.append(method)
+        // }
+        let block = RnLnd.streamMethods[method]
+        if block == nil {
+            NSLog("method not found" + method)
+            callback(nil, LndError(msg: "Lnd method not found: " + method))
+            return
+        }
+
+        let bytes = Data(base64Encoded: payload, options: [])
+        block?(bytes, LndmobileReceiveStream(method: method, callback: callback))
+        resolve("done")
+    }
+
+    @objc(ping:resolver:rejecter:)
+    func ping(_ method: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter _: @escaping RCTPromiseRejectBlock) {
+        print("ping", method)
+
+        sendEvent(
+            withName: method,
+            body: ["data": "pong"]
+        )
+
+        resolve("done")
     }
 
     @objc
-    func start(_ lndArguments: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "start");
+    func start(_ lndArguments: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "start")
+
+        // mainnet
+        // var argumentsToUse = "--sync-freelist --tlsdisableautofill  --maxpendingchannels=10 " + // --nobootstrap
+        //     "--chan-status-sample-interval=5s --minchansize=1000000 --ignore-historical-gossip-filters --rejecthtlc " +
+        //     "--bitcoin.active --bitcoin.testnet --bitcoin.defaultchanconfs=0 --routing.assumechanvalid " +
+        //     "--protocol.wumbo-channels --rpclisten=127.0.0.1 --norest --nolisten " +
+        //     "--maxbackoff=2s --enable-upfront-shutdown " + // --chan-enable-timeout=10s  --connectiontimeout=15s
+        //     "--bitcoin.node=neutrino --neutrino.addpeer=btcd-testnet.lightning.computer --neutrino.maxpeers=100 " +
+        //     "--neutrino.assertfilterheader=660000:08312375fabc082b17fa8ee88443feb350c19a34bb7483f94f7478fa4ad33032 " +
+        //     "--neutrino.feeurl=https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json  --numgraphsyncpeers=0 " +
+        //     "--bitcoin.basefee=100000 --bitcoin.feerate=10000 "; // --chan-disable-timeout=60s
+
+        // testnet
         var argumentsToUse = "--sync-freelist --tlsdisableautofill  --maxpendingchannels=10 " + // --nobootstrap
             "--chan-status-sample-interval=5s --minchansize=1000000 --ignore-historical-gossip-filters --rejecthtlc " +
-            "--bitcoin.active --bitcoin.mainnet --bitcoin.defaultchanconfs=0 --routing.assumechanvalid " +
+            "--bitcoin.active --bitcoin.testnet --bitcoin.defaultchanconfs=0 --routing.assumechanvalid " +
             "--protocol.wumbo-channels --rpclisten=127.0.0.1 --norest --nolisten " +
             "--maxbackoff=2s --enable-upfront-shutdown " + // --chan-enable-timeout=10s  --connectiontimeout=15s
-            "--bitcoin.node=neutrino --neutrino.addpeer=btcd-mainnet.lightning.computer --neutrino.maxpeers=100 " +
+            "--bitcoin.node=neutrino --neutrino.addpeer=btcd-testnet.lightning.computer --neutrino.maxpeers=100 " +
             "--neutrino.assertfilterheader=660000:08312375fabc082b17fa8ee88443feb350c19a34bb7483f94f7478fa4ad33032 " +
             "--neutrino.feeurl=https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json  --numgraphsyncpeers=0 " +
-            "--bitcoin.basefee=100000 --bitcoin.feerate=10000 "; // --chan-disable-timeout=60s
+            "--neutrino.addpeer=faucet.lightning.community " +
+            "--neutrino.addpeer=testnet3-btcd.zaphq.io " +
+            "--neutrino.addpeer=lnd.bitrefill.com:18333 " +
+            "--bitcoin.basefee=100000 --bitcoin.feerate=10000 " // --chan-disable-timeout=60s
 
         if !lndArguments.isEmpty {
-            argumentsToUse = lndArguments;
+            argumentsToUse = lndArguments
         }
         let callback = StartCallback(resolve: resolve, reject: reject)
         let callback2 = StartCallback2(resolve: resolve, reject: reject)
-        LndmobileStart(argumentsToUse, callback, callback2);
+        LndmobileStart(argumentsToUse, callback, callback2)
     }
 
     @objc
-    func unlockWallet(_ password: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "unlocking wallet with password -->" + password + "<--");
+    func unlockWallet(_ password: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "unlocking wallet with password -->" + password + "<--")
         var unlockRequest = Lnrpc_UnlockWalletRequest()
         guard let passwordData = password.data(using: .utf8) else {
             return reject("ReactNativeLND unlockWallet", "unable to generate password data", nil)
@@ -104,8 +200,8 @@ class RnLnd: NSObject {
     }
 
     @objc
-    func initWallet(_ password: String, mnemonics: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "initWallet");
+    func initWallet(_ password: String, mnemonics: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "initWallet")
         guard let passwordData = password.data(using: .utf8) else {
             return reject("ReactNativeLND initWallet", "unable to generate password data object", nil)
         }
@@ -118,29 +214,29 @@ class RnLnd: NSObject {
     }
 
     @objc
-    func getInfo(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "getInfo");
+    func getInfo(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "getInfo")
         let request = Lnrpc_GetInfoRequest()
         LndmobileGetInfo(try? request.serializedData(), GetInfoCallback(resolve: resolve, reject: reject))
     }
 
     @objc
-    func listChannels(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "listChannels");
+    func listChannels(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "listChannels")
         let request = Lnrpc_ListChannelsRequest()
         LndmobileListChannels(try? request.serializedData(), ListChannelsCallback(resolve: resolve, reject: reject))
     }
 
     @objc
-    func pendingChannels(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "pendingChannels");
+    func pendingChannels(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "pendingChannels")
         let request = Lnrpc_PendingChannelsRequest()
         LndmobilePendingChannels(try? request.serializedData(), PendingChannelsCallback(resolve: resolve, reject: reject))
     }
 
     @objc
     func fundingStateStepVerify(_ chanIdHex: String, psbtHex: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        print("ReactNativeLND", "fundingStateStepVerify");
+        print("ReactNativeLND", "fundingStateStepVerify")
 
         guard let chanIdHexData = chanIdHex.data(using: .utf8), let psbtData = psbtHex.data(using: .utf8) else {
             return reject("fundingStateStepVerify", "unable to generate chanIdHex/psbtHex data objects", nil)
@@ -156,12 +252,11 @@ class RnLnd: NSObject {
     }
 
     @objc
-    func fundingStateStepFinalize(_ chanIdHex: String, psbtHex: String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        print("ReactNativeLND", "fundingStateStepFinalize");
+    func fundingStateStepFinalize(_ chanIdHex: String, psbtHex: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "fundingStateStepFinalize")
 
         guard let chanIdHexData = chanIdHex.data(using: .utf8), let psbtData = psbtHex.data(using: .utf8) else {
             return reject("fundingStateStepFinalize", "unable to generate chanIdHex/psbtHex data objects", nil)
-
         }
 
         var funding = Lnrpc_FundingPsbtFinalize()
@@ -175,7 +270,7 @@ class RnLnd: NSObject {
 
     @objc
     func openChannelPsbt(_ pubkeyHex: String, amountSats: Int, privateChannel: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        print("ReactNativeLND", "openChannelPsbt");
+        print("ReactNativeLND", "openChannelPsbt")
 
         guard let pubkeyToUse = pubkeyHex.data(using: .utf8) else {
             return reject("openChannelPsbt", "unable to generate pubkeyToUse data object", nil)
@@ -195,7 +290,7 @@ class RnLnd: NSObject {
 
     @objc
     func connectPeer(_ host: String, pubkeyHex: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        print("ReactNativeLND", "connectPeer");
+        print("ReactNativeLND", "connectPeer")
 
         var address = Lnrpc_LightningAddress()
         address.host = host
@@ -206,44 +301,44 @@ class RnLnd: NSObject {
     }
 
     @objc
-    func walletBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "walletBalance");
+    func walletBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "walletBalance")
         let request = Lnrpc_WalletBalanceRequest()
         LndmobileWalletBalance(try? request.serializedData(), WalletBalanceCallback(resolve: resolve, reject: reject))
     }
 
     @objc
-    func channelBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "channelBalance");
+    func channelBalance(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "channelBalance")
         let request = Lnrpc_ChannelBalanceRequest()
         LndmobileChannelBalance(try? request.serializedData(), ChannelBalanceCallback(resolve: resolve, reject: reject))
     }
 
     @objc
     func sendPaymentSync(_ paymentRequest: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        print("ReactNativeLND", "sendPaymentSync");
+        print("ReactNativeLND", "sendPaymentSync")
         var request = Lnrpc_SendRequest()
         request.paymentRequest = paymentRequest
         LndmobileSendPaymentSync(try? request.serializedData(), SendPaymentSyncCallback(resolve: resolve, reject: reject))
     }
 
     @objc
-    func sendToRouteSync(_ paymentHashHex: String, route: Any, resolve: RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        print("ReactNativeLND", "sendToRouteSync");
+    func sendToRouteSync(_: String, route _: Any, resolve: RCTPromiseResolveBlock, reject _: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "sendToRouteSync")
         resolve("")
     }
 
     @objc
-    func genSeed(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "genSeed");
+    func genSeed(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "genSeed")
         let request = Lnrpc_GenSeedRequest()
-        LndmobileGenSeed(try? request.serializedData()
-                         , GenSeedCallback(resolve: resolve, reject: reject))
+        LndmobileGenSeed(try? request.serializedData(),
+                         GenSeedCallback(resolve: resolve, reject: reject))
     }
 
     @objc
     func addInvoice(_ sat: Int, memo: String, expiry: Int, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        print("ReactNativeLND", "addInvoice");
+        print("ReactNativeLND", "addInvoice")
         var request = Lnrpc_Invoice()
         request.value = Int64(sat)
         request.memo = memo
@@ -253,8 +348,8 @@ class RnLnd: NSObject {
     }
 
     @objc
-    func closeChannel(_ deliveryAddress: String, fundingTxidHex: String, outputIndex: Int, force: Bool,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        print("ReactNativeLND", "closeChannel");
+    func closeChannel(_ deliveryAddress: String, fundingTxidHex: String, outputIndex: Int, force: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "closeChannel")
 
         var channelPoint = Lnrpc_ChannelPoint()
         channelPoint.fundingTxidStr = fundingTxidHex
@@ -269,16 +364,21 @@ class RnLnd: NSObject {
     }
 
     @objc
-    func stopDaemon(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
-        print("ReactNativeLND", "stopDaemon");
+    func stopDaemon(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        print("ReactNativeLND", "stopDaemon")
         let req = Lnrpc_StopRequest()
         let serializedReq = try? req.serializedData()
         LndmobileStopDaemon(serializedReq, EmptyResponseBooleanCallback(resolve: resolve, reject: reject))
     }
 
     @objc
-    static func requiresMainQueueSetup() -> Bool {
-        return true
+    override static func requiresMainQueueSetup() -> Bool {
+        return false
     }
 
+    override func supportedEvents() -> [String]! {
+        var events = RnLnd.streamMethods.map { $0.key }
+        events.append("pong")
+        return events
+    }
 }
