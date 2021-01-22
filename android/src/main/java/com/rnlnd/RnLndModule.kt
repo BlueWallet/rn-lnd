@@ -1,5 +1,6 @@
 package com.rnlnd
 
+import android.util.Base64
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Promise
@@ -10,39 +11,29 @@ import com.google.protobuf.ByteString
 import lndmobile.Lndmobile
 import kotlin.random.Random
 import com.rnlnd.helpers.*;
-import lndmobile.SendStream
-
+import org.json.JSONObject;
 
 class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     override fun getName(): String {
         return "RnLnd"
     }
 
-    // Example method
-    // See https://reactnative.dev/docs/native-modules-android
-    @ReactMethod
-    fun multiply(a: Int, b: Int, promise: Promise) {
-      promise.resolve(666);
-    }
+  @ReactMethod
+  fun getLndDir(promise: Promise) {
+    val dir = this._getLndDir();
+    promise.resolve(dir);
+  }
+
+  private fun _getLndDir(): String {
+    val dir = ContextCompat.getExternalFilesDirs(reactApplicationContext.applicationContext, null)[0];
+    return dir.toString() + "/.lnd";
+  }
 
   @ReactMethod
   fun start(lndArguments: String, promise: Promise) {
-    val dir = ContextCompat.getExternalFilesDirs(reactApplicationContext.applicationContext, null)[0];
+    val dir = this._getLndDir();
     Log.v("ReactNativeLND", "starting LND in " + dir);
-    var argumentsToUse = "--sync-freelist --tlsdisableautofill  --maxpendingchannels=10 " + // --nobootstrap
-      "--chan-status-sample-interval=5s --minchansize=1000000 --ignore-historical-gossip-filters --rejecthtlc " +
-      "--bitcoin.active --bitcoin.mainnet --bitcoin.defaultchanconfs=0 --routing.assumechanvalid " +
-      "--protocol.wumbo-channels --rpclisten=127.0.0.1 --norest --nolisten " +
-      "--maxbackoff=2s --enable-upfront-shutdown " + // --chan-enable-timeout=10s  --connectiontimeout=15s
-      "--bitcoin.node=neutrino --neutrino.addpeer=btcd-mainnet.lightning.computer --neutrino.maxpeers=100 " +
-      "--neutrino.assertfilterheader=660000:08312375fabc082b17fa8ee88443feb350c19a34bb7483f94f7478fa4ad33032 " +
-      "--neutrino.feeurl=https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json  --numgraphsyncpeers=0 " +
-      "--bitcoin.basefee=100000 --bitcoin.feerate=10000 "; // --chan-disable-timeout=60s
-
-    if (lndArguments != "") {
-      argumentsToUse = lndArguments;
-    }
-    Lndmobile.start(argumentsToUse + " --lnddir=" + dir + "/.lnd", StartCallback(promise), StartCallback2());
+    Lndmobile.start(lndArguments + " --lnddir=" + dir, StartCallback(promise), StartCallback2());
   }
 
   @ReactMethod
@@ -85,6 +76,13 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     Log.v("ReactNativeLND", "listChannels");
     val req: lnrpc.Rpc.ListChannelsRequest = lnrpc.Rpc.ListChannelsRequest.newBuilder().build();
     Lndmobile.listChannels(req.toByteArray(), ListChannelsCallback(promise));
+  }
+
+  @ReactMethod
+  fun listPeers(promise: Promise) {
+    Log.v("ReactNativeLND", "listPeers");
+    val req: lnrpc.Rpc.ListPeersRequest = lnrpc.Rpc.ListPeersRequest.newBuilder().build();
+    Lndmobile.listPeers(req.toByteArray(), ListPeersCallback(promise));
   }
 
   @ReactMethod
@@ -208,17 +206,65 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   }
 
   @ReactMethod
-  fun sendToRouteSync(paymentHashHex: String, route: Any, promise: Promise) {
-/*    Log.v("ReactNativeLND", "sendToRouteSync");
-    val route = lnrpc.Rpc.Route.newBuilder();
-    route.addAllHops(hops);
-    route.build();
-    val req: lnrpc.Rpc.SendToRouteRequest = lnrpc.Rpc.SendToRouteRequest.newBuilder()
-      .setRoute(route)
-      .setPaymentHash(ByteString.copyFrom(hexStringToByteArray(paymentHashHex)))
+  fun decodePayReq(paymentRequest: String, promise: Promise) {
+    Log.v("ReactNativeLND", "decodePayReq");
+
+    val req: lnrpc.Rpc.PayReqString = lnrpc.Rpc.PayReqString.newBuilder()
+      .setPayReq(paymentRequest)
       .build();
 
-    Lndmobile.sendToRouteSync(req.toByteArray(), SendPaymentSyncCallback(promise));*/
+    Lndmobile.decodePayReq(req.toByteArray(), DecodePayReqCallback(promise));
+  }
+
+  @ReactMethod
+  fun sendToRouteV2(paymentHashHex: String, paymentAddrHex: String, queryRoutesJsonString: String, promise: Promise) {
+    Log.v("ReactNativeLND", "sendToRouteV2");
+
+    val rootJson = JSONObject(queryRoutesJsonString);
+    val routesJson = rootJson.getJSONArray("routes");
+    val routeJson = routesJson.getJSONObject(0);
+    val hopsJson = routeJson.getJSONArray("hops");
+
+    val routeTemp = lnrpc.Rpc.Route.newBuilder()
+      .setTotalAmtMsat(routeJson.getString("total_amt_msat").toLong())
+      .setTotalFeesMsat(routeJson.getString("total_fees_msat").toLong())
+      .setTotalTimeLock(routeJson.getString("total_time_lock").toInt());
+
+    for (c in 1..hopsJson.length()) {
+      val hopJson = hopsJson.getJSONObject(c-1);
+      Log.v("ReactNativeLND", "chanId = " + hopJson.getLong("chan_id") + " " + hopJson.getString("chan_id") + " " + hopJson.getString("chan_id").toLong().toString() );
+
+      // ACHTUNG: `.getString("").toLong()` MUST be used as `getLong()` can yield incorrect result on big numbers in json
+      val hopTemp = lnrpc.Rpc.Hop.newBuilder()
+        .setChanId(hopJson.getString("chan_id").toLong())
+        .setChanCapacity(hopJson.getString("chan_capacity").toLong())
+        .setExpiry(hopJson.getString("expiry").toInt())
+        .setAmtToForwardMsat(hopJson.getString("amt_to_forward_msat").toLong())
+        .setFeeMsat(hopJson.getString("fee_msat").toLong())
+        .setPubKey(hopJson.getString("pub_key"))
+        .setTlvPayload(hopJson.getBoolean("tlv_payload"));
+
+      if (paymentAddrHex !== "" && c == hopsJson.length()) {
+        // only last hop
+        val mppRecord = lnrpc.Rpc.MPPRecord.newBuilder()
+          .setPaymentAddr(ByteString.copyFrom(hexStringToByteArray(paymentAddrHex)))
+          .setTotalAmtMsat(hopJson.getString("amt_to_forward_msat").toLong())
+          .build();
+        hopTemp.setMppRecord(mppRecord);
+      };
+
+      routeTemp.addHops(hopTemp.build());
+    }
+
+
+    val req = routerrpc.RouterOuterClass.SendToRouteRequest.newBuilder()
+      .setPaymentHash(ByteString.copyFrom(hexStringToByteArray(paymentHashHex)))
+      .setRoute(routeTemp.build())
+      .build();
+
+    Log.v("ReactNativeLND", "req = " + com.google.protobuf.util.JsonFormat.printer().print(req));
+
+    Lndmobile.routerSendToRouteV2(req.toByteArray(), SendToRouteV2Callback(promise));
   }
 
   @ReactMethod
@@ -241,6 +287,15 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
       .setExpiry(expiry.toLong())
       .build();
     Lndmobile.addInvoice(req.toByteArray(), AddInvoiceCallback(promise))
+  }
+
+  @ReactMethod
+  fun listPayments(promise: Promise) {
+    Log.v("ReactNativeLND", "listPayments");
+    val req = lnrpc.Rpc.ListPaymentsRequest
+      .newBuilder()
+      .build();
+    Lndmobile.listPayments(req.toByteArray(), ListPaymentsCallback(promise));
   }
 
   @ReactMethod

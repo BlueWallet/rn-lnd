@@ -3,23 +3,28 @@ import { StyleSheet, ScrollView, TextInput, Text, Button, SafeAreaView } from 'r
 import RnLnd from 'rn-lnd';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
   const [chanIdHex, setChanIdHex] = React.useState<string>('');
   const [psbtHex, setPsbtHex] = React.useState<string>('');
-  const [bolt11, setBolt11] = React.useState<string>('');
+  const [bolt11, setBolt11] = React.useState<string>(
+    'lnbc140n1psq4apapp5amr5qvcsr0kp4dnfqj4c8ktwy5d2syc3t6y0j0wufcvcge9fxukqdqqcqzpgsp56p2phszufj54xk38c24c73pvj7pn5mh4zw8kvk77rzvac47h6szq9qyyssq4d2xwm905eg22v8za772l5u0unt628c8vfmerq86dhc62a36d8q5us70xq4h599n8uujk4jraepr5t9dmtnjc9v5ry5dk9fk3e2fh4cpp9ntsv'
+  );
 
-  React.useEffect(() => {
-  }, []);
+  React.useEffect(() => {}, []);
 
   return (
-    <SafeAreaView style={styles.container} >
-    <ScrollView contentContainerStyle={styles.container}>
-        <Text>Result: {result}</Text>
-
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <Text>Hello LND</Text>
         <Button
           title="Start LND"
           onPress={() => {
             RnLnd.start('').then(console.warn);
+          }}
+        />
+        <Button
+          title="Start,unlock,wait"
+          onPress={async () => {
+            await RnLnd.startUnlockAndWait();
           }}
         />
 
@@ -47,6 +52,13 @@ export default function App() {
         />
 
         <Button
+          title="getLndDir"
+          onPress={() => {
+            RnLnd.getLndDir().then(console.warn);
+          }}
+        />
+
+        <Button
           title="getInfo"
           onPress={() => {
             RnLnd.getInfo().then(console.warn);
@@ -70,7 +82,16 @@ export default function App() {
         <Button
           title="connectPeer"
           onPress={() => {
-            RnLnd.connectPeer('34.239.230.56:9735', '03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f').then(console.warn);
+            // RnLnd.connectPeer('34.239.230.56:9735', '03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f').then(console.warn);
+            RnLnd.connectPeer('165.227.95.104:9735', '02e89ca9e8da72b33d896bae51d20e7e6675aa971f7557500b6591b15429e717f1').then(console.warn);
+          }}
+        />
+
+        <Button
+          title="listPeers"
+          onPress={() => {
+            // RnLnd.connectPeer('34.239.230.56:9735', '03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f').then(console.warn);
+            RnLnd.listPeers().then(console.warn);
           }}
         />
 
@@ -80,7 +101,8 @@ export default function App() {
         <Button
           title="openChannel"
           onPress={() => {
-            RnLnd.openChannelPsbt('03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f', 100000, true).then(console.warn);
+            // RnLnd.openChannelPsbt('03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f', 100000, true).then(console.warn);
+            RnLnd.openChannelPsbt('02e89ca9e8da72b33d896bae51d20e7e6675aa971f7557500b6591b15429e717f1', 100000, true).then(console.warn);
           }}
         />
 
@@ -122,6 +144,12 @@ export default function App() {
           }}
         />
         <Button
+          title="sendToRouteV2"
+          onPress={async () => {
+            await RnLnd.payInvoiceViaSendToRoute(bolt11);
+          }}
+        />
+        <Button
           title="addInvoice"
           onPress={() => {
             RnLnd.addInvoice(1, 'test invoice', 86400).then(console.warn);
@@ -133,7 +161,13 @@ export default function App() {
             RnLnd.closeChannel('13HaCAB4jf7FYSZexJxoczyDDnutzZigjS', '9505944c68c879663650a1d7dcd4ae3888fcc3434a9ebf26bbcc4553426157d6', 0, false).then(console.warn);
           }}
         />
-    </ScrollView>
+        <Button
+          title="listPayments"
+          onPress={() => {
+            RnLnd.listPayments().then(console.warn);
+          }}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -143,6 +177,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    width: 200,
   },
   box: {
     width: 60,

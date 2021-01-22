@@ -120,6 +120,25 @@ class ListChannelsCallback(promise: Promise) : Callback {
   }
 }
 
+class ListPeersCallback(promise: Promise) : Callback {
+  private val promise = promise;
+
+  public override  fun onError(p0: Exception) {
+    Log.v("ReactNativeLND", "ListPeersCallback onError");
+    this.promise.resolve(false);
+  }
+
+  public override  fun onResponse(p0: ByteArray?) {
+    Log.v("ReactNativeLND", "ListPeersCallback success");
+    if (p0 != null) {
+      val resp: lnrpc.Rpc.ListPeersResponse = lnrpc.Rpc.ListPeersResponse.parseFrom(p0);
+      this.promise.resolve(respToJson(resp));
+    } else {
+      this.promise.resolve(false);
+    }
+  }
+}
+
 
 class PendingChannelsCallback(promise: Promise) : Callback {
   private val promise = promise;
@@ -328,6 +347,51 @@ class SendPaymentSyncCallback(private val promise: Promise) : Callback {
   }
 }
 
+class DecodePayReqCallback(private val promise: Promise) : Callback {
+  override fun onError(e: Exception) {
+    Log.v("ReactNativeLND", "DecodePayReqCallback err" + e.message);
+    this.promise.resolve(false);
+  }
+
+  override fun onResponse(bytes: ByteArray?) {
+    Log.v("ReactNativeLND", "DecodePayReqCallback ok");
+    try {
+      if (bytes != null) {
+        val resp: lnrpc.Rpc.PayReq = lnrpc.Rpc.PayReq.parseFrom(bytes);
+        this.promise.resolve(respToJson(resp));
+      } else {
+        this.promise.resolve(false);
+      }
+    } catch (e: InvalidProtocolBufferException) {
+      e.printStackTrace();
+      this.promise.resolve(false);
+    }
+  }
+}
+
+
+class SendToRouteV2Callback(private val promise: Promise) : Callback {
+  override fun onError(e: Exception) {
+    Log.v("ReactNativeLND", "SendtoRouteV2Callback err" + e.message);
+    this.promise.resolve(false);
+  }
+
+  override fun onResponse(bytes: ByteArray?) {
+    Log.v("ReactNativeLND", "SendtoRouteV2Callback ok");
+    try {
+      if (bytes != null) {
+        val resp: lnrpc.Rpc.HTLCAttempt = lnrpc.Rpc.HTLCAttempt.parseFrom(bytes);
+        this.promise.resolve(respToJson(resp));
+      } else {
+        this.promise.resolve(false);
+      }
+    } catch (e: InvalidProtocolBufferException) {
+      e.printStackTrace();
+      this.promise.resolve(false);
+    }
+  }
+}
+
 
 class AddInvoiceCallback(private val promise: Promise) : Callback {
   override fun onError(e: Exception) {
@@ -340,6 +404,30 @@ class AddInvoiceCallback(private val promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp: lnrpc.Rpc.AddInvoiceResponse = lnrpc.Rpc.AddInvoiceResponse.parseFrom(bytes)
+        this.promise.resolve(respToJson(resp));
+      } else {
+        this.promise.resolve(false);
+      }
+    } catch (e: InvalidProtocolBufferException) {
+      e.printStackTrace();
+      this.promise.resolve(false);
+    }
+  }
+}
+
+
+
+class ListPaymentsCallback(private val promise: Promise) : Callback {
+  override fun onError(e: Exception) {
+    Log.v("ReactNativeLND", "ListPaymentsCallback err" + e.message);
+    this.promise.resolve(false);
+  }
+
+  override fun onResponse(bytes: ByteArray?) {
+    Log.v("ReactNativeLND", "ListPaymentsCallback ok");
+    try {
+      if (bytes != null) {
+        val resp = lnrpc.Rpc.ListPaymentsResponse.parseFrom(bytes)
         this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
