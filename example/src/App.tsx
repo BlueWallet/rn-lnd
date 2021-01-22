@@ -2,6 +2,29 @@ import * as React from 'react';
 import { StyleSheet, ScrollView, TextInput, Text, Button, SafeAreaView } from 'react-native';
 import RnLnd from 'rn-lnd';
 
+const BlockHeight = () => {
+  const [update, setUpdate] = React.useState<boolean>(false);
+  const [block, setBlock] = React.useState<number | undefined>();
+
+  React.useEffect(() => {
+    const i = setInterval(async () => {
+      if (update || !block) {
+        const { blockHeight } = await RnLnd.getInfo2();
+        setBlock(blockHeight);
+      }
+      if (!update || block) return
+    }, 3000);
+
+    return () => clearInterval(i);
+  });
+
+  const title = `Block height: ${block || null} ${update ? 'update enabled' : 'update disabled'}`
+
+  return (
+    <Button title={title} onPress={() => setUpdate((u) => !u)} />
+  );
+};
+
 export default function App() {
   const [result, setResult] = React.useState<number | undefined>(); // eslint-disable-line
   const [chanIdHex, setChanIdHex] = React.useState<string>('');
@@ -16,6 +39,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text>Result: {result}</Text>
+        <BlockHeight />
 
         <Button
           title="Start LND"
@@ -47,12 +71,14 @@ export default function App() {
           }}
         />
 
+        {/*
         <Button
           title="getInfo"
           onPress={() => {
             RnLnd.getInfo().then(console.warn);
           }}
         />
+*/}
 
         <Button
           title="getInfo2"
@@ -151,8 +177,23 @@ export default function App() {
 
         <Button
           title="SubscribeTransactions"
-          onPress={() => {
-            RnLnd.subscribeTransactions().then(console.info).catch(console.warn);
+          onPress={async () => {
+            try {
+              const subscription = await RnLnd.subscribeTransactions((x) => console.info('SubscribeTransactions event', x));
+            } catch (e) {
+              console.warn(e);
+            }
+          }}
+        />
+
+        <Button
+          title="SubscribePeerEvents"
+          onPress={async () => {
+            try {
+              const subscription = await RnLnd.subscribePeerEvents((x) => console.info('SubscribePeerEvents event', x));
+            } catch (e) {
+              console.warn(e);
+            }
           }}
         />
 

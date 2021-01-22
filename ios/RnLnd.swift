@@ -69,6 +69,7 @@ class RnLnd: RCTEventEmitter {
 
     static let streamMethods = [
         "SubscribeTransactions": { req, cb in LndmobileSubscribeTransactions(req, cb) },
+        "SubscribePeerEvents": { req, cb in LndmobileSubscribePeerEvents(req, cb) },
     ]
 
     @objc(sendCommand:payload:resolver:rejecter:)
@@ -114,7 +115,8 @@ class RnLnd: RCTEventEmitter {
             }
             self.sendEvent(
                 withName: method,
-                body: ["data": data?.base64EncodedString()]
+                // body: ["data": data?.base64EncodedString()]
+                body: data?.base64EncodedString()
             )
         }
 
@@ -133,7 +135,7 @@ class RnLnd: RCTEventEmitter {
 
         let bytes = Data(base64Encoded: payload, options: [])
         block?(bytes, LndmobileReceiveStream(method: method, callback: callback))
-        resolve("done")
+        resolve("subscribed: " + method)
     }
 
     @objc(ping:resolver:rejecter:)
@@ -169,12 +171,14 @@ class RnLnd: RCTEventEmitter {
             "--bitcoin.active --bitcoin.testnet --bitcoin.defaultchanconfs=0 --routing.assumechanvalid " +
             "--protocol.wumbo-channels --rpclisten=127.0.0.1 --norest --nolisten " +
             "--maxbackoff=2s --enable-upfront-shutdown " + // --chan-enable-timeout=10s  --connectiontimeout=15s
-            "--bitcoin.node=neutrino --neutrino.addpeer=btcd-testnet.lightning.computer --neutrino.maxpeers=100 " +
+            "--bitcoin.node=neutrino --neutrino.maxpeers=100 " +
             "--neutrino.assertfilterheader=660000:08312375fabc082b17fa8ee88443feb350c19a34bb7483f94f7478fa4ad33032 " +
             "--neutrino.feeurl=https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json  --numgraphsyncpeers=0 " +
+            "--neutrino.addpeer=btcd-testnet.lightning.computer " +
             "--neutrino.addpeer=faucet.lightning.community " +
-            "--neutrino.addpeer=testnet3-btcd.zaphq.io " +
-            "--neutrino.addpeer=lnd.bitrefill.com:18333 " +
+            // "--neutrino.addpeer=testnet3-btcd.zaphq.io " + !!!
+            // "--neutrino.addpeer=lnd.bitrefill.com:18333 " +
+            "--neutrino.addpeer=neutrino.testnet3.suredbits.com:18333 " +
             "--bitcoin.basefee=100000 --bitcoin.feerate=10000 " // --chan-disable-timeout=60s
 
         if !lndArguments.isEmpty {

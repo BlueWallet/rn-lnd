@@ -26,35 +26,39 @@ type NativeType = {
   sendStreamCommand(method: string, payload: string, streamOnlyOnce: boolean): Promise<string>;
 };
 
-export interface ISendRequestClass<IReq, Req> {
+interface ISendRequestClass<IReq, Req> {
   create: (options: IReq) => Req;
   encode: (request: Req) => $protobuf.Writer;
 }
 
-export interface ISendResponseClass<Res> {
+interface ISendResponseClass<Res> {
   decode: (reader: $protobuf.Reader | Uint8Array) => Res;
   toObject(message: Res, options?: $protobuf.IConversionOptions): { [k: string]: any };
 }
 
-export interface ISyncCommandOptions<IReq, Req, Res> {
+interface ISyncCommandOptions<IReq, Req, Res> {
   request: ISendRequestClass<IReq, Req>;
   response: ISendResponseClass<Res>;
   method: string;
   options: IReq;
 }
 
-export interface IStreamCommandOptions<IReq, Req> {
+interface IStreamCommandOptions<IReq, Req> {
   request: ISendRequestClass<IReq, Req>;
   method: string;
   options: IReq;
+}
+
+interface IStreamResultOptions<Res> {
+  base64Result: string;
+  response: ISendResponseClass<Res>;
 }
 
 const Native: NativeType = NativeModules.RnLnd;
 global.Native = Native;
 
 const RnLndEmitter = new NativeEventEmitter(NativeModules.RnLnd);
-const subscription1 = RnLndEmitter.addListener('SubscribeTransactions', (...a) => console.log('SubscribeTransactions', ...a));
-const subscription2 = RnLndEmitter.addListener('pong', (...a) => console.log('pong event', ...a));
+const subscription3 = RnLndEmitter.addListener('SubscribePeerEvents', (...a) => console.log('SubscribePeerEvents', ...a));
 
 class RnLndImplementation {
   static jsonOrBoolean(str: string | boolean) {
@@ -68,8 +72,8 @@ class RnLndImplementation {
   }
 
   async ping() {
-    const res = await Native.ping('pong')
-    return res
+    const res = await Native.ping('pong');
+    return res;
   }
 
   async sendCommand<IReq, Req, Res>({ request, response, method, options }: ISyncCommandOptions<IReq, Req, Res>): Promise<Res> {
@@ -85,6 +89,10 @@ class RnLndImplementation {
     const payload = base64.fromByteArray(request.encode(instance).finish());
     const response = await Native.sendStreamCommand(method, payload, streamOnlyOnce);
     return response;
+  }
+
+  decodeStreamResult<Res>({ base64Result, response }: IStreamResultOptions<Res>): Res {
+    return response.decode(base64.toByteArray(base64Result));
   }
 
   async getInfo2() {
@@ -117,8 +125,8 @@ class RnLndImplementation {
     return response;
   }
 
-  async subscribeTransactions() {
-    const response = await this.sendStreamCommand<lnrpc.IGetTransactionsRequest, lnrpc.GetTransactionsRequest>(
+  async subscribeTransactions(callback) {
+    await this.sendStreamCommand<lnrpc.IGetTransactionsRequest, lnrpc.GetTransactionsRequest>(
       {
         method: 'SubscribeTransactions',
         options: {},
@@ -126,7 +134,37 @@ class RnLndImplementation {
       },
       true
     );
-    return response;
+
+    const subscription = RnLndEmitter.addListener('SubscribeTransactions', (b64) => {
+      const data = this.decodeStreamResult<lnrpc.Transaction>({
+        response: lnrpc.Transaction,
+        base64Result: b64,
+      });
+      callback(data);
+    });
+
+    return subscription;
+  }
+
+  async subscribePeerEvents(callback) {
+    await this.sendStreamCommand<lnrpc.IPeerEventSubscription, lnrpc.PeerEventSubscription>(
+      {
+        method: 'SubscribePeerEvents',
+        options: {},
+        request: lnrpc.PeerEventSubscription,
+      },
+      true
+    );
+
+    const subscription = RnLndEmitter.addListener('SubscribeTransactions', (b64) => {
+      const data = this.decodeStreamResult<lnrpc.PeerEvent>({
+        response: lnrpc.PeerEvent,
+        base64Result: b64,
+      });
+      callback(data);
+    });
+
+    return subscription;
   }
 
   async channelBalance(): Promise<boolean | object> {
