@@ -10,9 +10,9 @@ import lndmobile.RecvStream
 class OpenChannelRecvStream(promise: Promise) : RecvStream {
   private val promise = promise;
 
-  public override  fun onError(p0: Exception) {}
+  public override fun onError(p0: Exception) {}
 
-  public override  fun onResponse(var1: ByteArray?) {
+  public override fun onResponse(var1: ByteArray?) {
     if (var1 != null) {
       val resp: lnrpc.Rpc.OpenStatusUpdate = lnrpc.Rpc.OpenStatusUpdate.parseFrom(var1);
       this.promise.resolve(respToJson(resp));
@@ -25,9 +25,9 @@ class OpenChannelRecvStream(promise: Promise) : RecvStream {
 class CloseChannelRecvStream(promise: Promise) : RecvStream {
   private val promise = promise;
 
-  public override  fun onError(p0: Exception) {}
+  public override fun onError(p0: Exception) {}
 
-  public override  fun onResponse(var1: ByteArray?) {
+  public override fun onResponse(var1: ByteArray?) {
     if (var1 != null) {
       val resp: lnrpc.Rpc.CloseStatusUpdate = lnrpc.Rpc.CloseStatusUpdate.parseFrom(var1);
       Log.v("ReactNativeLND", "CloseChannelRecvStream onResponse: " + respToJson(resp));
@@ -41,12 +41,12 @@ class CloseChannelRecvStream(promise: Promise) : RecvStream {
 class FundingStateStepCallback(promise: Promise) : Callback {
   private val promise = promise;
 
-  public override  fun onError(p0: Exception) {
+  public override fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "FundingStateStepCallback onError: " + p0.message);
     this.promise.resolve(false);
   }
 
-  public override  fun onResponse(p0: ByteArray?) {
+  public override fun onResponse(p0: ByteArray?) {
     Log.v("ReactNativeLND", "FundingStateStepCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.FundingStateStepResp = lnrpc.Rpc.FundingStateStepResp.parseFrom(p0);
@@ -60,12 +60,12 @@ class FundingStateStepCallback(promise: Promise) : Callback {
 class GetInfoCallback(promise: Promise) : Callback {
   private val promise = promise;
 
-  public override  fun onError(p0: Exception) {
+  public override fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "GetInfoCallback onError");
     this.promise.resolve(false);
   }
 
-  public override  fun onResponse(p0: ByteArray?) {
+  public override fun onResponse(p0: ByteArray?) {
     Log.v("ReactNativeLND", "GetInfoCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.GetInfoResponse = lnrpc.Rpc.GetInfoResponse.parseFrom(p0);
@@ -77,15 +77,13 @@ class GetInfoCallback(promise: Promise) : Callback {
 }
 
 
-class ListChannelsCallback(promise: Promise) : Callback {
-  private val promise = promise;
-
-  public override  fun onError(p0: Exception) {
+class ListChannelsCallback(private val promise: Promise) : Callback {
+  public override fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "ListChannelsCallback onError");
     this.promise.resolve(false);
   }
 
-  public override  fun onResponse(p0: ByteArray?) {
+  public override fun onResponse(p0: ByteArray?) {
     Log.v("ReactNativeLND", "ListChannelsCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.ListChannelsResponse = lnrpc.Rpc.ListChannelsResponse.parseFrom(p0);
@@ -123,12 +121,12 @@ class ListChannelsCallback(promise: Promise) : Callback {
 class ListPeersCallback(promise: Promise) : Callback {
   private val promise = promise;
 
-  public override  fun onError(p0: Exception) {
+  public override fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "ListPeersCallback onError");
     this.promise.resolve(false);
   }
 
-  public override  fun onResponse(p0: ByteArray?) {
+  public override fun onResponse(p0: ByteArray?) {
     Log.v("ReactNativeLND", "ListPeersCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.ListPeersResponse = lnrpc.Rpc.ListPeersResponse.parseFrom(p0);
@@ -143,12 +141,12 @@ class ListPeersCallback(promise: Promise) : Callback {
 class PendingChannelsCallback(promise: Promise) : Callback {
   private val promise = promise;
 
-  public override  fun onError(p0: Exception) {
+  public override fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "PendingChannelsCallback onError");
     this.promise.resolve(false);
   }
 
-  public override  fun onResponse(p0: ByteArray?) {
+  public override fun onResponse(p0: ByteArray?) {
     Log.v("ReactNativeLND", "PendingChannelsCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.PendingChannelsResponse = lnrpc.Rpc.PendingChannelsResponse.parseFrom(p0);
@@ -163,12 +161,12 @@ class PendingChannelsCallback(promise: Promise) : Callback {
 class EmptyResponseBooleanCallback(promise: Promise) : Callback {
   private val promise = promise;
 
-  public override  fun onError(p0: Exception) {
+  public override fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "Callback onError");
     this.promise.resolve(false);
   }
 
-  public override  fun onResponse(p0: ByteArray?) {
+  public override fun onResponse(p0: ByteArray?) {
     Log.v("ReactNativeLND", "Callback success");
     this.promise.resolve(true);
   }
@@ -177,23 +175,23 @@ class EmptyResponseBooleanCallback(promise: Promise) : Callback {
 class StartCallback(promise: Promise) : Callback {
   private val promise = promise;
 
-  public override  fun onError(p0: Exception) {
+  public override fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "start callback onError");
     this.promise.resolve(false);
   }
 
-  public override  fun onResponse(p0: ByteArray?) {
+  public override fun onResponse(p0: ByteArray?) {
     Log.v("ReactNativeLND", "lnd started ===========================================================================");
     this.promise.resolve(true);
   }
 }
 
 class StartCallback2 : Callback {
-  public override  fun onError(p0: Exception) {
+  public override fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "start callback onError 2");
   }
 
-  public override  fun onResponse(p0: ByteArray?) {
+  public override fun onResponse(p0: ByteArray?) {
     Log.v("ReactNativeLND", "lnd is ready ===========================================================================");
   }
 }
@@ -223,7 +221,6 @@ class InitWalletCallback(promise: Promise) : Callback {
 }
 
 
-
 class UnlockWalletCallback(pr: Promise) : Callback {
   private val prr = pr;
 
@@ -246,7 +243,6 @@ class UnlockWalletCallback(pr: Promise) : Callback {
     }
   }
 }
-
 
 
 class WalletBalanceCallback(promise: Promise) : Callback {
@@ -322,7 +318,6 @@ class GenSeedCallback(promise: Promise) : Callback {
     }
   }
 }
-
 
 
 class SendPaymentSyncCallback(private val promise: Promise) : Callback {
@@ -416,7 +411,6 @@ class AddInvoiceCallback(private val promise: Promise) : Callback {
 }
 
 
-
 class ListPaymentsCallback(private val promise: Promise) : Callback {
   override fun onError(e: Exception) {
     Log.v("ReactNativeLND", "ListPaymentsCallback err" + e.message);
@@ -439,11 +433,33 @@ class ListPaymentsCallback(private val promise: Promise) : Callback {
   }
 }
 
-fun byteArrayToHex(bytesArg: ByteArray) : String {
+class ListInvoicesCallback(private val promise: Promise) : Callback {
+  override fun onError(e: Exception) {
+    Log.v("ReactNativeLND", "ListInvoicesCallback err" + e.message);
+    this.promise.resolve(false);
+  }
+
+  override fun onResponse(bytes: ByteArray?) {
+    Log.v("ReactNativeLND", "ListInvoicesCallback ok");
+    try {
+      if (bytes != null) {
+        val resp = lnrpc.Rpc.ListInvoiceResponse.parseFrom(bytes)
+        this.promise.resolve(respToJson(resp));
+      } else {
+        this.promise.resolve(false);
+      }
+    } catch (e: InvalidProtocolBufferException) {
+      e.printStackTrace();
+      this.promise.resolve(false);
+    }
+  }
+}
+
+fun byteArrayToHex(bytesArg: ByteArray): String {
   return bytesArg.joinToString("") { String.format("%02X", (it.toInt() and 0xFF)) }.toLowerCase()
 }
 
-fun hexStringToByteArray(strArg: String) : ByteArray {
+fun hexStringToByteArray(strArg: String): ByteArray {
   val HEX_CHARS = "0123456789ABCDEF"
   val str = strArg.toUpperCase();
 

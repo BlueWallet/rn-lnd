@@ -167,6 +167,12 @@ export default function App() {
             RnLnd.listPayments().then(console.warn);
           }}
         />
+        <Button
+          title="listInvoices"
+          onPress={() => {
+            RnLnd.listInvoices().then(console.warn);
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );

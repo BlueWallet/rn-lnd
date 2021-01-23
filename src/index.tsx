@@ -23,6 +23,7 @@ type NativeType = {
   addInvoice(sat: number, memo: string, expiry: number): Promise<boolean | string>;
   closeChannel(deliveryAddress: string, fundingTxidHex: string, outputIndex: number, force: boolean): Promise<boolean | string>;
   listPayments(): Promise<boolean | string>;
+  listInvoices(): Promise<boolean | string>;
 };
 
 const Native: NativeType = NativeModules.RnLnd;
@@ -131,6 +132,10 @@ class RnLndImplementation {
 
   async listPayments(): Promise<boolean | object> {
     return RnLndImplementation.jsonOrBoolean(await Native.listPayments());
+  }
+
+  async listInvoices(): Promise<boolean | object> {
+    return RnLndImplementation.jsonOrBoolean(await Native.listInvoices());
   }
 
   async getLndDir(): Promise<boolean | string> {

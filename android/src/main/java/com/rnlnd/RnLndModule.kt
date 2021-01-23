@@ -1,6 +1,5 @@
 package com.rnlnd
 
-import android.util.Base64
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Promise
@@ -8,15 +7,18 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.google.protobuf.ByteString
+import com.rnlnd.helpers.*
 import lndmobile.Lndmobile
+import org.json.JSONObject
+import java.io.File
+import java.lang.Exception
 import kotlin.random.Random
-import com.rnlnd.helpers.*;
-import org.json.JSONObject;
+
 
 class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-    override fun getName(): String {
-        return "RnLnd"
-    }
+  override fun getName(): String {
+    return "RnLnd"
+  }
 
   @ReactMethod
   fun getLndDir(promise: Promise) {
@@ -29,10 +31,51 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     return dir.toString() + "/.lnd";
   }
 
+  private fun fileExists(fileName: String): Boolean {
+    val file = File(fileName);
+    val fileExists = file.exists();
+
+    if (fileExists) {
+      Log.v("ReactNativeLND", "$fileName does exist");
+    } else {
+      Log.v("ReactNativeLND", "$fileName does not exist");
+    }
+
+    return fileExists;
+  }
+
+  private fun copyFiles() {
+    val names = this.reactApplicationContext.assets.list("");
+    Log.v("ReactNativeLND", " assets ");
+    names?.iterator()?.forEach {
+      Log.v("ReactNativeLND", " asset " + it);
+    }
+
+    // have the object build the directory structure, if needed:
+    val directory = File(this._getLndDir() + "/data/chain/bitcoin/mainnet");
+    directory.mkdirs();
+
+    val files = listOf<String>("block_headers.bin", "neutrino.db", "peers.json", "reg_filter_headers.bin");
+    files.iterator().forEach {
+      val input = this.reactApplicationContext.assets.open(it);
+      val output = java.io.FileOutputStream(this._getLndDir() + "/data/chain/bitcoin/mainnet/" + it);
+      input.copyTo(output);
+      output.flush();
+      output.close();
+      Log.v("ReactNativeLND", "copied " + it);
+    }
+  }
+
   @ReactMethod
   fun start(lndArguments: String, promise: Promise) {
     val dir = this._getLndDir();
     Log.v("ReactNativeLND", "starting LND in " + dir);
+    if (!this.fileExists(dir + "/data/chain/bitcoin/mainnet/block_headers.bin111")) {
+      try {
+        this.copyFiles();
+      } catch (e: Exception) {
+      }
+    }
     Lndmobile.start(lndArguments + " --lnddir=" + dir, StartCallback(promise), StartCallback2());
   }
 
@@ -51,7 +94,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
 
   @ReactMethod
   fun initWallet(password: String, mnemonics: String, promise: Promise) {
-    Log.v("ReactNativeLND", "init wallet "  + password + " " + mnemonics);
+    Log.v("ReactNativeLND", "init wallet " + password + " " + mnemonics);
     val pw: ByteString = ByteString.copyFromUtf8(password);
     val cipherSeed = mnemonics.split(" ").toMutableList();
     val req: lnrpc.Walletunlocker.InitWalletRequest = lnrpc.Walletunlocker
@@ -96,8 +139,8 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   fun fundingStateStepVerify(chanIdHex: String, psbtHex: String, promise: Promise) {
     Log.v("ReactNativeLND", "fundingStateStep verifying channel " + chanIdHex + " with psbt " + psbtHex);
 
-    val chanId : ByteString = ByteString.copyFrom(hexStringToByteArray(chanIdHex));
-    val psbt : ByteString = ByteString.copyFrom(hexStringToByteArray(psbtHex));
+    val chanId: ByteString = ByteString.copyFrom(hexStringToByteArray(chanIdHex));
+    val psbt: ByteString = ByteString.copyFrom(hexStringToByteArray(psbtHex));
 
     val funding: lnrpc.Rpc.FundingPsbtVerify = lnrpc.Rpc.FundingPsbtVerify.newBuilder()
       .setPendingChanId(chanId)
@@ -116,8 +159,8 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   fun fundingStateStepFinalize(chanIdHex: String, psbtHex: String, promise: Promise) {
     Log.v("ReactNativeLND", "fundingStateStep finalizing channel " + chanIdHex + " with psbt " + psbtHex);
 
-    val chanId : ByteString = ByteString.copyFrom(hexStringToByteArray(chanIdHex));
-    val psbt : ByteString = ByteString.copyFrom(hexStringToByteArray(psbtHex));
+    val chanId: ByteString = ByteString.copyFrom(hexStringToByteArray(chanIdHex));
+    val psbt: ByteString = ByteString.copyFrom(hexStringToByteArray(psbtHex));
 
     val funding: lnrpc.Rpc.FundingPsbtFinalize = lnrpc.Rpc.FundingPsbtFinalize.newBuilder()
       .setPendingChanId(chanId)
@@ -231,8 +274,8 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
       .setTotalTimeLock(routeJson.getString("total_time_lock").toInt());
 
     for (c in 1..hopsJson.length()) {
-      val hopJson = hopsJson.getJSONObject(c-1);
-      Log.v("ReactNativeLND", "chanId = " + hopJson.getLong("chan_id") + " " + hopJson.getString("chan_id") + " " + hopJson.getString("chan_id").toLong().toString() );
+      val hopJson = hopsJson.getJSONObject(c - 1);
+      Log.v("ReactNativeLND", "chanId = " + hopJson.getLong("chan_id") + " " + hopJson.getString("chan_id") + " " + hopJson.getString("chan_id").toLong().toString());
 
       // ACHTUNG: `.getString("").toLong()` MUST be used as `getLong()` can yield incorrect result on big numbers in json
       val hopTemp = lnrpc.Rpc.Hop.newBuilder()
@@ -296,6 +339,15 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
       .newBuilder()
       .build();
     Lndmobile.listPayments(req.toByteArray(), ListPaymentsCallback(promise));
+  }
+
+  @ReactMethod
+  fun listInvoices(promise: Promise) {
+    Log.v("ReactNativeLND", "listInvoices");
+    val req = lnrpc.Rpc.ListInvoiceRequest
+      .newBuilder()
+      .build();
+    Lndmobile.listInvoices(req.toByteArray(), ListInvoicesCallback(promise));
   }
 
   @ReactMethod
