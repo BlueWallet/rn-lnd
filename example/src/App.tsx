@@ -173,6 +173,12 @@ export default function App() {
             RnLnd.listInvoices().then(console.warn);
           }}
         />
+        <Button
+          title="getLogs"
+          onPress={() => {
+            RnLnd.getLogs().then(console.warn);
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );

@@ -24,6 +24,7 @@ type NativeType = {
   closeChannel(deliveryAddress: string, fundingTxidHex: string, outputIndex: number, force: boolean): Promise<boolean | string>;
   listPayments(): Promise<boolean | string>;
   listInvoices(): Promise<boolean | string>;
+  getLogs(): Promise<boolean | string>;
 };
 
 const Native: NativeType = NativeModules.RnLnd;
@@ -140,6 +141,10 @@ class RnLndImplementation {
 
   async getLndDir(): Promise<boolean | string> {
     return await Native.getLndDir();
+  }
+
+  async getLogs(): Promise<boolean | string> {
+    return await Native.getLogs();
   }
 
   async startUnlockAndWait(password: string = '') {

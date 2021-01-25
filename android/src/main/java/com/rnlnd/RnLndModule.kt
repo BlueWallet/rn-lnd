@@ -12,6 +12,7 @@ import lndmobile.Lndmobile
 import org.json.JSONObject
 import java.io.File
 import java.lang.Exception
+import java.lang.Integer.max
 import kotlin.random.Random
 
 
@@ -339,6 +340,18 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
       .newBuilder()
       .build();
     Lndmobile.listPayments(req.toByteArray(), ListPaymentsCallback(promise));
+  }
+
+  @ReactMethod
+  fun getLogs(promise: Promise) {
+    val dir = this._getLndDir();
+    val logLines = mutableListOf<String>();
+    val fileName = dir + "/logs/bitcoin/mainnet/lnd.log";
+    File(fileName).forEachLine {
+      logLines.add(it);
+    }
+    val len = max(100, logLines.size);
+    promise.resolve(logLines.subList(logLines.size - len, logLines.size).joinToString("\n"));
   }
 
   @ReactMethod
