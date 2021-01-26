@@ -24,6 +24,7 @@ type NativeType = {
   closeChannel(deliveryAddress: string, fundingTxidHex: string, outputIndex: number, force: boolean): Promise<boolean | string>;
   listPayments(): Promise<boolean | string>;
   listInvoices(): Promise<boolean | string>;
+  getTransactions(): Promise<boolean | string>;
   getLogs(): Promise<boolean | string>;
 };
 
@@ -137,6 +138,10 @@ class RnLndImplementation {
 
   async listInvoices(): Promise<boolean | object> {
     return RnLndImplementation.jsonOrBoolean(await Native.listInvoices());
+  }
+
+  async getTransactions(): Promise<boolean | object> {
+    return RnLndImplementation.jsonOrBoolean(await Native.getTransactions());
   }
 
   async getLndDir(): Promise<boolean | string> {

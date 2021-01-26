@@ -179,6 +179,12 @@ export default function App() {
             RnLnd.getLogs().then(console.warn);
           }}
         />
+        <Button
+          title="getTransactions"
+          onPress={() => {
+            RnLnd.getTransactions().then(console.warn);
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );

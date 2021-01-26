@@ -231,6 +231,15 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   }
 
   @ReactMethod
+  fun getTransactions(promise: Promise) {
+    Log.v("ReactNativeLND", "getTransactions");
+    val req = lnrpc.Rpc.GetTransactionsRequest
+      .newBuilder()
+      .build();
+    Lndmobile.walletBalance(req.toByteArray(), GetTransactionsCallback(promise));
+  }
+
+  @ReactMethod
   fun channelBalance(promise: Promise) {
     Log.v("ReactNativeLND", "channelBalance");
     val req: lnrpc.Rpc.ChannelBalanceRequest = lnrpc.Rpc.ChannelBalanceRequest

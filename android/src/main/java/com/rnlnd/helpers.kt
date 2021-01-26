@@ -269,6 +269,28 @@ class WalletBalanceCallback(promise: Promise) : Callback {
   }
 }
 
+class GetTransactionsCallback(private val promise: Promise) : Callback {
+  override fun onError(e: Exception) {
+    Log.v("ReactNativeLND", "GetTransactionsCallback err" + e.message);
+    this.promise.resolve(false);
+  }
+
+  override fun onResponse(bytes: ByteArray?) {
+    Log.v("ReactNativeLND", "GetTransactionsCallback ok");
+    try {
+      if (bytes != null) {
+        val resp = lnrpc.Rpc.TransactionDetails.parseFrom(bytes);
+        this.promise.resolve(respToJson(resp));
+      } else {
+        this.promise.resolve(false);
+      }
+    } catch (e: InvalidProtocolBufferException) {
+      e.printStackTrace();
+      this.promise.resolve(false);
+    }
+  }
+}
+
 
 class ChannelBalanceCallback(promise: Promise) : Callback {
   private val promise = promise;
