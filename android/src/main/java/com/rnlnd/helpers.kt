@@ -245,9 +245,7 @@ class UnlockWalletCallback(pr: Promise) : Callback {
 }
 
 
-class WalletBalanceCallback(promise: Promise) : Callback {
-  private val promise = promise;
-
+class WalletBalanceCallback(private val promise: Promise) : Callback {
   override fun onError(e: Exception) {
     Log.v("ReactNativeLND", "WalletBalanceCallback err" + e.message);
     this.promise.resolve(false);
@@ -257,7 +255,7 @@ class WalletBalanceCallback(promise: Promise) : Callback {
     Log.v("ReactNativeLND", "WalletBalanceCallback ok");
     try {
       if (bytes != null) {
-        val resp: lnrpc.Rpc.WalletBalanceResponse = lnrpc.Rpc.WalletBalanceResponse.parseFrom(bytes);
+        val resp = lnrpc.Rpc.WalletBalanceResponse.parseFrom(bytes);
         this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);

@@ -71,7 +71,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   fun start(lndArguments: String, promise: Promise) {
     val dir = this._getLndDir();
     Log.v("ReactNativeLND", "starting LND in " + dir);
-    if (!this.fileExists(dir + "/data/chain/bitcoin/mainnet/block_headers.bin111")) {
+    if (!this.fileExists(dir + "/data/chain/bitcoin/mainnet/block_headers.bin")) {
       try {
         this.copyFiles();
       } catch (e: Exception) {
@@ -101,6 +101,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     val req: lnrpc.Walletunlocker.InitWalletRequest = lnrpc.Walletunlocker
       .InitWalletRequest
       .newBuilder()
+      .setRecoveryWindow(0)
       .setWalletPassword(pw)
       .addAllCipherSeedMnemonic(cipherSeed)
       .build();
@@ -224,7 +225,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   @ReactMethod
   fun walletBalance(promise: Promise) {
     Log.v("ReactNativeLND", "walletBalance");
-    val req: lnrpc.Rpc.WalletBalanceRequest = lnrpc.Rpc.WalletBalanceRequest
+    val req = lnrpc.Rpc.WalletBalanceRequest
       .newBuilder()
       .build();
     Lndmobile.walletBalance(req.toByteArray(), WalletBalanceCallback(promise));
@@ -236,7 +237,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     val req = lnrpc.Rpc.GetTransactionsRequest
       .newBuilder()
       .build();
-    Lndmobile.walletBalance(req.toByteArray(), GetTransactionsCallback(promise));
+    Lndmobile.getTransactions(req.toByteArray(), GetTransactionsCallback(promise));
   }
 
   @ReactMethod

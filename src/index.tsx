@@ -88,7 +88,7 @@ class RnLndImplementation {
   start(lndArguments: string): Promise<boolean> {
     const defaultArguments =
       '--sync-freelist --tlsdisableautofill  --maxpendingchannels=10 ' + // --debuglevel=debug
-      '--minchansize=1000000 --ignore-historical-gossip-filters --rejecthtlc ' +
+      '--minchansize=1000000 --ignore-historical-gossip-filters ' + // --rejecthtlc
       '--bitcoin.active --bitcoin.mainnet --bitcoin.defaultchanconfs=1 --routing.assumechanvalid ' +
       '--protocol.wumbo-channels --rpclisten=127.0.0.1 --norest --nolisten ' +
       '--maxbackoff=5s --enable-upfront-shutdown --connectiontimeout=20s' +
