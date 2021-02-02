@@ -178,7 +178,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   }
 
   @ReactMethod
-  fun openChannelPsbt(pubkeyHex: String, amountSats: Integer, privateChannel: Boolean, promise: Promise) {
+  fun openChannelPsbt(pubkeyHex: String, amountSats: Int, privateChannel: Boolean, promise: Promise) {
     Log.v("ReactNativeLND", "openChannelPsbt");
 
     val pubkey2use: ByteString = ByteString.copyFrom(hexStringToByteArray(pubkeyHex));

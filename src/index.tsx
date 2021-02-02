@@ -31,6 +31,19 @@ type NativeType = {
 const Native: NativeType = NativeModules.RnLnd;
 
 class RnLndImplementation {
+  /**
+   * Flag that prevents calling LND start twice, as it leads to app crash
+   * @private
+   */
+  private _started: boolean = false;
+
+  /**
+   * Flag that shows whether we already Inited or Unlocked LND. It wont crash
+   * if called again, but rather idicates theres a bug in logic on upper level
+   * @private
+   */
+  private _inited: boolean = false;
+
   static jsonOrBoolean(str: string | boolean) {
     if (str === true || str === false) return str;
 
@@ -66,6 +79,10 @@ class RnLndImplementation {
   }
 
   initWallet(password: string, mnemonics: string): Promise<boolean> {
+    if (this._inited) {
+      throw new Error('LND is already inited or unlocked');
+    }
+    this._inited = true;
     return Native.initWallet(password, mnemonics);
   }
 
@@ -86,6 +103,10 @@ class RnLndImplementation {
   }
 
   start(lndArguments: string): Promise<boolean> {
+    if (this._started) {
+      throw new Error('LND is already started');
+    }
+    this._started = true;
     const defaultArguments =
       '--sync-freelist --tlsdisableautofill  --maxpendingchannels=10 ' + // --debuglevel=debug
       '--minchansize=1000000 --ignore-historical-gossip-filters ' + // --rejecthtlc
@@ -105,6 +126,10 @@ class RnLndImplementation {
   }
 
   unlockWallet(password: string): Promise<boolean> {
+    if (this._inited) {
+      throw new Error('LND is already inited or unlocked');
+    }
+    this._inited = true;
     return Native.unlockWallet(password);
   }
 
@@ -152,12 +177,7 @@ class RnLndImplementation {
     return await Native.getLogs();
   }
 
-  async startUnlockAndWait(password: string = '') {
-    console.warn('starting...');
-    await this.start('');
-    console.warn('started');
-    await this.unlockWallet(password || 'gsomgsomgsom');
-    console.warn('unlocked');
+  async waitTillReady() {
     let c = 0;
     while (1) {
       const connected = await this.connectPeer('165.227.95.104:9735', '02e89ca9e8da72b33d896bae51d20e7e6675aa971f7557500b6591b15429e717f1');
@@ -172,6 +192,15 @@ class RnLndImplementation {
       if (c++ >= 30) throw new Error('waiting for LND timed out');
     }
     console.warn('ready');
+  }
+
+  async startUnlockAndWait(password: string = '') {
+    console.warn('starting...');
+    await this.start('');
+    console.warn('started');
+    await this.unlockWallet(password || 'gsomgsomgsom');
+    console.warn('unlocked');
+    await this.waitTillReady();
   }
 
   async payInvoiceViaSendToRoute(bolt11: string) {
