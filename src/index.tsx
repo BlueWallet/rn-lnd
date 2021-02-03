@@ -3,6 +3,7 @@ import { NativeModules } from 'react-native';
 type NativeType = {
   start(lndArguments: string): Promise<boolean>;
   stopDaemon(): Promise<boolean>;
+  wipeLndDir(): Promise<boolean>;
   unlockWallet(password: string): Promise<boolean>;
   initWallet(password: string, mnemonics: string): Promise<boolean>;
   getInfo(): Promise<boolean | string>;
@@ -123,6 +124,10 @@ class RnLndImplementation {
 
   stop(): Promise<boolean> {
     return Native.stopDaemon();
+  }
+
+  wipeLndDir(): Promise<boolean> {
+    return Native.wipeLndDir();
   }
 
   unlockWallet(password: string): Promise<boolean> {

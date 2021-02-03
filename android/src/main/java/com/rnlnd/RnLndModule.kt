@@ -11,7 +11,6 @@ import com.rnlnd.helpers.*
 import lndmobile.Lndmobile
 import org.json.JSONObject
 import java.io.File
-import java.lang.Exception
 import java.lang.Integer.max
 import kotlin.random.Random
 
@@ -25,6 +24,14 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   fun getLndDir(promise: Promise) {
     val dir = this._getLndDir();
     promise.resolve(dir);
+  }
+
+  @ReactMethod
+  fun wipeLndDir(promise: Promise) {
+    val dir = this._getLndDir();
+    val fileA = File(dir);
+    fileA.deleteRecursively();
+    promise.resolve(true);
   }
 
   private fun _getLndDir(): String {

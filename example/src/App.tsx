@@ -185,6 +185,12 @@ export default function App() {
             RnLnd.getTransactions().then(console.warn);
           }}
         />
+        <Button
+          title="wipeLndDir"
+          onPress={() => {
+            RnLnd.wipeLndDir().then(console.warn);
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );
