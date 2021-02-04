@@ -45,6 +45,13 @@ class RnLndImplementation {
    */
   private _inited: boolean = false;
 
+  /**
+   * Tells if LND can accept calls after it was unlocked and fully started
+   * (i.e. wont throw "server is still in the process of starting" on our calls)
+   * @private
+   */
+  private _ready: boolean = false;
+
   static jsonOrBoolean(str: string | boolean) {
     if (str === true || str === false) return str;
 
@@ -79,7 +86,7 @@ class RnLndImplementation {
     return RnLndImplementation.jsonOrBoolean(await Native.getInfo());
   }
 
-  initWallet(password: string, mnemonics: string): Promise<boolean> {
+  initWallet(password: string = 'gsomgsomgsom', mnemonics: string): Promise<boolean> {
     if (this._inited) {
       throw new Error('LND is already inited or unlocked');
     }
@@ -130,12 +137,13 @@ class RnLndImplementation {
     return Native.wipeLndDir();
   }
 
-  unlockWallet(password: string): Promise<boolean> {
+  async unlockWallet(password: string = 'gsomgsomgsom'): Promise<boolean> {
     if (this._inited) {
       throw new Error('LND is already inited or unlocked');
     }
-    this._inited = true;
-    return Native.unlockWallet(password);
+    this._inited = true; // locking first
+    this._inited = await Native.unlockWallet(password);
+    return this._inited;
   }
 
   async walletBalance(): Promise<boolean | object> {
@@ -182,28 +190,40 @@ class RnLndImplementation {
     return await Native.getLogs();
   }
 
-  async waitTillReady() {
+  async waitTillReady(timeout = 30) {
     let c = 0;
     while (1) {
       const connected = await this.connectPeer('165.227.95.104:9735', '02e89ca9e8da72b33d896bae51d20e7e6675aa971f7557500b6591b15429e717f1');
       if (connected) break;
       const peers: any = await this.listPeers();
       if (peers && peers.peers && peers.peers.length) {
+        this._ready = true;
         break;
       } else {
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
-      if (c++ >= 30) throw new Error('waiting for LND timed out');
+      if (c++ >= timeout) throw new Error('waiting for LND timed out');
     }
     console.warn('ready');
   }
 
-  async startUnlockAndWait(password: string = '') {
+  /**
+   * Tells if LND can accept calls after it was unlocked and fully started
+   * (i.e. wont throw "server is still in the process of starting" on our calls)
+   */
+  async isReady() {
+    return this._ready;
+  }
+
+  async startUnlockAndWait(password: string = 'gsomgsomgsom') {
     console.warn('starting...');
     await this.start('');
     console.warn('started');
-    await this.unlockWallet(password || 'gsomgsomgsom');
+    const unlocked = await this.unlockWallet(password);
+    if (!unlocked) {
+      throw new Error('Could not unlock LND. Is wallet created?');
+    }
     console.warn('unlocked');
     await this.waitTillReady();
   }
