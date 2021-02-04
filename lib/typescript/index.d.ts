@@ -10,6 +10,12 @@ declare class RnLndImplementation {
      * @private
      */
     private _inited;
+    /**
+     * Tells if LND can accept calls after it was unlocked and fully started
+     * (i.e. wont throw "server is still in the process of starting" on our calls)
+     * @private
+     */
+    private _ready;
     static jsonOrBoolean(str: string | boolean): any;
     channelBalance(): Promise<boolean | object>;
     connectPeer(host: string, pubkeyHex: string): Promise<boolean>;
@@ -17,7 +23,7 @@ declare class RnLndImplementation {
     fundingStateStepFinalize(chanIdHex: string, psbtHex: string): Promise<boolean | object>;
     genSeed(): Promise<boolean | string>;
     getInfo(): Promise<boolean | object>;
-    initWallet(password: string, mnemonics: string): Promise<boolean>;
+    initWallet(password: string | undefined, mnemonics: string): Promise<boolean>;
     listChannels(): Promise<boolean | object>;
     listPeers(): Promise<boolean | object>;
     pendingChannels(): Promise<boolean | object>;
@@ -25,7 +31,7 @@ declare class RnLndImplementation {
     start(lndArguments: string): Promise<boolean>;
     stop(): Promise<boolean>;
     wipeLndDir(): Promise<boolean>;
-    unlockWallet(password: string): Promise<boolean>;
+    unlockWallet(password?: string): Promise<boolean>;
     walletBalance(): Promise<boolean | object>;
     sendPaymentSync(paymentRequest: string): Promise<boolean | object>;
     sendToRouteV2(paymentHashHex: string, paymentAddrHex: string, routesJsonString: string): Promise<boolean | object>;
@@ -37,7 +43,12 @@ declare class RnLndImplementation {
     getTransactions(): Promise<boolean | object>;
     getLndDir(): Promise<boolean | string>;
     getLogs(): Promise<boolean | string>;
-    waitTillReady(): Promise<void>;
+    waitTillReady(timeout?: number): Promise<void>;
+    /**
+     * Tells if LND can accept calls after it was unlocked and fully started
+     * (i.e. wont throw "server is still in the process of starting" on our calls)
+     */
+    isReady(): Promise<boolean>;
     startUnlockAndWait(password?: string): Promise<void>;
     payInvoiceViaSendToRoute(bolt11: string): Promise<boolean | object>;
 }
