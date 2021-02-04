@@ -497,5 +497,5 @@ fun hexStringToByteArray(strArg: String): ByteArray {
 }
 
 fun respToJson(resp: MessageOrBuilder): String {
-  return com.google.protobuf.util.JsonFormat.printer().print(resp);
+  return com.google.protobuf.util.JsonFormat.printer().print(resp).replace("\\n".toRegex(), "");
 }
