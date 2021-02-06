@@ -6,7 +6,6 @@ import com.google.protobuf.InvalidProtocolBufferException
 import com.google.protobuf.MessageOrBuilder
 import lndmobile.Callback
 import lndmobile.RecvStream
-import java.util.*
 
 class OpenChannelRecvStream(promise: Promise) : RecvStream {
   private val promise = promise;
@@ -16,7 +15,7 @@ class OpenChannelRecvStream(promise: Promise) : RecvStream {
   public override fun onResponse(var1: ByteArray?) {
     if (var1 != null) {
       val resp: lnrpc.Rpc.OpenStatusUpdate = lnrpc.Rpc.OpenStatusUpdate.parseFrom(var1);
-      this.promise.resolve(respToBase64Json(resp));
+      this.promise.resolve(respToJson(resp));
     } else {
       this.promise.resolve(true);
     }
@@ -31,8 +30,8 @@ class CloseChannelRecvStream(promise: Promise) : RecvStream {
   public override fun onResponse(var1: ByteArray?) {
     if (var1 != null) {
       val resp: lnrpc.Rpc.CloseStatusUpdate = lnrpc.Rpc.CloseStatusUpdate.parseFrom(var1);
-      Log.v("ReactNativeLND", "CloseChannelRecvStream onResponse: " + respToBase64Json(resp));
-      this.promise.resolve(respToBase64Json(resp));
+      Log.v("ReactNativeLND", "CloseChannelRecvStream onResponse: " + respToJson(resp));
+      this.promise.resolve(respToJson(resp));
     } else {
       this.promise.resolve(true);
     }
@@ -51,7 +50,7 @@ class FundingStateStepCallback(promise: Promise) : Callback {
     Log.v("ReactNativeLND", "FundingStateStepCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.FundingStateStepResp = lnrpc.Rpc.FundingStateStepResp.parseFrom(p0);
-      this.promise.resolve(respToBase64Json(resp));
+      this.promise.resolve(respToJson(resp));
     } else {
       this.promise.resolve(true);
     }
@@ -70,7 +69,7 @@ class GetInfoCallback(promise: Promise) : Callback {
     Log.v("ReactNativeLND", "GetInfoCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.GetInfoResponse = lnrpc.Rpc.GetInfoResponse.parseFrom(p0);
-      this.promise.resolve(respToBase64Json(resp));
+      this.promise.resolve(respToJson(resp));
     } else {
       this.promise.resolve(false);
     }
@@ -88,7 +87,7 @@ class ListChannelsCallback(private val promise: Promise) : Callback {
     Log.v("ReactNativeLND", "ListChannelsCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.ListChannelsResponse = lnrpc.Rpc.ListChannelsResponse.parseFrom(p0);
-      this.promise.resolve(respToBase64Json(resp));
+      this.promise.resolve(respToJson(resp));
 
       /*val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
 
@@ -131,7 +130,7 @@ class ListPeersCallback(promise: Promise) : Callback {
     Log.v("ReactNativeLND", "ListPeersCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.ListPeersResponse = lnrpc.Rpc.ListPeersResponse.parseFrom(p0);
-      this.promise.resolve(respToBase64Json(resp));
+      this.promise.resolve(respToJson(resp));
     } else {
       this.promise.resolve(false);
     }
@@ -151,7 +150,7 @@ class PendingChannelsCallback(promise: Promise) : Callback {
     Log.v("ReactNativeLND", "PendingChannelsCallback success");
     if (p0 != null) {
       val resp: lnrpc.Rpc.PendingChannelsResponse = lnrpc.Rpc.PendingChannelsResponse.parseFrom(p0);
-      this.promise.resolve(respToBase64Json(resp));
+      this.promise.resolve(respToJson(resp));
     } else {
       this.promise.resolve(false);
     }
@@ -257,7 +256,7 @@ class WalletBalanceCallback(private val promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp = lnrpc.Rpc.WalletBalanceResponse.parseFrom(bytes);
-        this.promise.resolve(respToBase64Json(resp));
+        this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
       }
@@ -279,7 +278,7 @@ class GetTransactionsCallback(private val promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp = lnrpc.Rpc.TransactionDetails.parseFrom(bytes);
-        this.promise.resolve(respToBase64Json(resp));
+        this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
       }
@@ -304,7 +303,7 @@ class ChannelBalanceCallback(promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp: lnrpc.Rpc.ChannelBalanceResponse = lnrpc.Rpc.ChannelBalanceResponse.parseFrom(bytes);
-        this.promise.resolve(respToBase64Json(resp));
+        this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
       }
@@ -352,7 +351,7 @@ class SendPaymentSyncCallback(private val promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp: lnrpc.Rpc.SendResponse = lnrpc.Rpc.SendResponse.parseFrom(bytes);
-        this.promise.resolve(respToBase64Json(resp));
+        this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
       }
@@ -374,7 +373,7 @@ class DecodePayReqCallback(private val promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp: lnrpc.Rpc.PayReq = lnrpc.Rpc.PayReq.parseFrom(bytes);
-        this.promise.resolve(respToBase64Json(resp));
+        this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
       }
@@ -397,7 +396,7 @@ class SendToRouteV2Callback(private val promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp: lnrpc.Rpc.HTLCAttempt = lnrpc.Rpc.HTLCAttempt.parseFrom(bytes);
-        this.promise.resolve(respToBase64Json(resp));
+        this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
       }
@@ -420,7 +419,7 @@ class AddInvoiceCallback(private val promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp: lnrpc.Rpc.AddInvoiceResponse = lnrpc.Rpc.AddInvoiceResponse.parseFrom(bytes)
-        this.promise.resolve(respToBase64Json(resp));
+        this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
       }
@@ -443,7 +442,7 @@ class ListPaymentsCallback(private val promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp = lnrpc.Rpc.ListPaymentsResponse.parseFrom(bytes)
-        this.promise.resolve(respToBase64Json(resp));
+        this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
       }
@@ -465,7 +464,7 @@ class ListInvoicesCallback(private val promise: Promise) : Callback {
     try {
       if (bytes != null) {
         val resp = lnrpc.Rpc.ListInvoiceResponse.parseFrom(bytes)
-        this.promise.resolve(respToBase64Json(resp));
+        this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
       }
@@ -497,7 +496,6 @@ fun hexStringToByteArray(strArg: String): ByteArray {
   return result
 }
 
-fun respToBase64Json(resp: MessageOrBuilder): String {
-  val jsonString = com.google.protobuf.util.JsonFormat.printer().print(resp).replace("\\n".toRegex(), "");
-  return Base64.getEncoder().encodeToString(jsonString.toByteArray());
+fun respToJson(resp: MessageOrBuilder): String {
+  return com.google.protobuf.util.JsonFormat.printer().print(resp);
 }
