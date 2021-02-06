@@ -40,6 +40,4 @@ const base64ToHex = (() => {
   }
 })();
 
-module.exports.base64encode = Base64.encode;
-module.exports.base64decode = Base64.decode;
 module.exports.base64ToHex = base64ToHex;
