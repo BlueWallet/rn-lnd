@@ -1,5 +1,4 @@
 /* eslint-disable no-bitwise */
-/* eslint-disable no-undef */
 /* eslint-disable no-shadow */
 
 /* Convert base64 data to hex string.  https://stackoverflow.com/a/57909068/893578
