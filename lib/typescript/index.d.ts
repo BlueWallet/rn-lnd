@@ -41,6 +41,7 @@ declare class RnLndImplementation {
     listPayments(): Promise<boolean | object>;
     listInvoices(): Promise<boolean | object>;
     getTransactions(): Promise<boolean | object>;
+    sendAllCoins(address: string): Promise<any>;
     getLndDir(): Promise<boolean | string>;
     getLogs(): Promise<boolean | string>;
     waitTillReady(timeout?: number): Promise<void>;

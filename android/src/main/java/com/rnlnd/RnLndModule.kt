@@ -360,6 +360,19 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   }
 
   @ReactMethod
+  fun sendAllCoins(address: String, promise: Promise) {
+    Log.v("ReactNativeLND", "sendCoins");
+
+    val req = lnrpc.Rpc.SendCoinsRequest
+      .newBuilder()
+      .setAddr(address)
+      .setSendAll(true)
+      .build();
+
+    Lndmobile.sendCoins(req.toByteArray(), SendCoinsCallback(promise));
+  }
+
+  @ReactMethod
   fun getLogs(promise: Promise) {
     val dir = this._getLndDir();
     val logLines = mutableListOf<String>();

@@ -27,6 +27,7 @@ type NativeType = {
   listPayments(): Promise<boolean | string>;
   listInvoices(): Promise<boolean | string>;
   getTransactions(): Promise<boolean | string>;
+  sendAllCoins(address: string): Promise<boolean | string>;
   getLogs(): Promise<boolean | string>;
 };
 
@@ -181,6 +182,10 @@ class RnLndImplementation {
 
   async getTransactions(): Promise<boolean | object> {
     return RnLndImplementation.jsonOrBoolean(await Native.getTransactions());
+  }
+
+  async sendAllCoins(address: string) {
+    return RnLndImplementation.jsonOrBoolean(await Native.sendAllCoins(address));
   }
 
   async getLndDir(): Promise<boolean | string> {

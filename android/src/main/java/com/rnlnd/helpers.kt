@@ -453,6 +453,30 @@ class ListPaymentsCallback(private val promise: Promise) : Callback {
   }
 }
 
+
+
+class SendCoinsCallback(private val promise: Promise) : Callback {
+  override fun onError(e: Exception) {
+    Log.v("ReactNativeLND", "SendCoinsCallback err" + e.message);
+    this.promise.resolve(false);
+  }
+
+  override fun onResponse(bytes: ByteArray?) {
+    Log.v("ReactNativeLND", "SendCoinsCallback ok");
+    try {
+      if (bytes != null) {
+        val resp = lnrpc.Rpc.SendCoinsResponse.parseFrom(bytes)
+        this.promise.resolve(respToJson(resp));
+      } else {
+        this.promise.resolve(false);
+      }
+    } catch (e: InvalidProtocolBufferException) {
+      e.printStackTrace();
+      this.promise.resolve(false);
+    }
+  }
+}
+
 class ListInvoicesCallback(private val promise: Promise) : Callback {
   override fun onError(e: Exception) {
     Log.v("ReactNativeLND", "ListInvoicesCallback err" + e.message);
