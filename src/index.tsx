@@ -118,11 +118,11 @@ class RnLndImplementation {
     }
     this._started = true;
     const defaultArguments =
-      '--sync-freelist --tlsdisableautofill  --maxpendingchannels=10 ' + // --debuglevel=debug
+      '--sync-freelist --tlsdisableautofill  --maxpendingchannels=1000 ' + // --debuglevel=debug
       '--minchansize=1000000 --ignore-historical-gossip-filters ' + // --rejecthtlc
       '--bitcoin.active --bitcoin.mainnet --bitcoin.defaultchanconfs=1 --routing.assumechanvalid ' +
       '--protocol.wumbo-channels --rpclisten=127.0.0.1 --norest --nolisten ' +
-      '--maxbackoff=5s --enable-upfront-shutdown --connectiontimeout=20s' +
+      '--maxbackoff=5s --connectiontimeout=20s' + // --enable-upfront-shutdown
       '--bitcoin.node=neutrino --neutrino.addpeer=btcd-mainnet.lightning.computer --neutrino.maxpeers=10 ' +
       '--neutrino.assertfilterheader=660000:08312375fabc082b17fa8ee88443feb350c19a34bb7483f94f7478fa4ad33032 ' +
       '--neutrino.feeurl=https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json  --numgraphsyncpeers=1 ' +

@@ -1,6 +1,6 @@
 {
   "name": "rn-lnd",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "LND for React Native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
