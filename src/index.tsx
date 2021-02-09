@@ -174,7 +174,10 @@ class RnLndImplementation {
     let c = 0;
     while (1) {
       const connected = await this.connectPeer('165.227.95.104:9735', '02e89ca9e8da72b33d896bae51d20e7e6675aa971f7557500b6591b15429e717f1');
-      if (connected) break;
+      if (connected) {
+        this._ready = true;
+        break;
+      }
       const peers: any = await this.listPeers();
       if (peers && peers.peers && peers.peers.length) {
         this._ready = true;
@@ -194,6 +197,14 @@ class RnLndImplementation {
    */
   isReady() {
     return this._ready;
+  }
+
+  isInited() {
+    return this._inited;
+  }
+
+  isStarted() {
+    return this._started;
   }
 
   async startUnlockAndWait(password: string = 'bluewallet') {

@@ -51,6 +51,8 @@ declare class RnLndImplementation {
      * (i.e. wont throw "server is still in the process of starting" on our calls)
      */
     isReady(): boolean;
+    isInited(): boolean;
+    isStarted(): boolean;
     startUnlockAndWait(password?: string): Promise<void>;
     private isObject;
     private camelToSnakeCase;
