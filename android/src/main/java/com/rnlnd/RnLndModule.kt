@@ -257,10 +257,11 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   }
 
   @ReactMethod
-  fun sendPaymentSync(paymentRequest: String, promise: Promise) {
+  fun sendPaymentSync(paymentRequest: String, amtSat: Long, promise: Promise) {
     Log.v("ReactNativeLND", "sendPaymentSync");
     val req: lnrpc.Rpc.SendRequest = lnrpc.Rpc.SendRequest.newBuilder()
       .setPaymentRequest(paymentRequest)
+      .setAmt(amtSat)
       .build();
 
     Lndmobile.sendPaymentSync(req.toByteArray(), SendPaymentSyncCallback(promise));
@@ -278,6 +279,19 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
   }
 
   @ReactMethod
+  fun queryRoutes(sourceHex: String, destHex: String, amtSat: Int, promise: Promise) {
+    Log.v("ReactNativeLND", "queryRoutes");
+
+    val req = lnrpc.Rpc.QueryRoutesRequest.newBuilder()
+      .setAmt(amtSat.toLong())
+      .setPubKey(destHex)
+      .setSourcePubKey(sourceHex)
+      .build();
+
+    Lndmobile.queryRoutes(req.toByteArray(), QueryRoutesCallbackCallback(promise));
+  }
+
+  @ReactMethod
   fun sendToRouteV2(paymentHashHex: String, paymentAddrHex: String, queryRoutesJsonString: String, promise: Promise) {
     Log.v("ReactNativeLND", "sendToRouteV2");
 
@@ -286,24 +300,30 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     val routeJson = routesJson.getJSONObject(0);
     val hopsJson = routeJson.getJSONArray("hops");
 
-    val routeTemp = lnrpc.Rpc.Route.newBuilder()
-      .setTotalAmtMsat(routeJson.getString("total_amt_msat").toLong())
-      .setTotalFeesMsat(routeJson.getString("total_fees_msat").toLong())
-      .setTotalTimeLock(routeJson.getString("total_time_lock").toInt());
+    val routeTemp = lnrpc.Rpc.Route.newBuilder();
+    routeTemp.setTotalAmtMsat(routeJson.getString("total_amt_msat").toLong());
+    if (routeJson.has("total_fees_msat")) {
+      routeTemp.setTotalFeesMsat(routeJson.getString("total_fees_msat").toLong());
+    }
+    routeTemp.setTotalTimeLock(routeJson.getString("total_time_lock").toInt());
 
     for (c in 1..hopsJson.length()) {
       val hopJson = hopsJson.getJSONObject(c - 1);
       Log.v("ReactNativeLND", "chanId = " + hopJson.getLong("chan_id") + " " + hopJson.getString("chan_id") + " " + hopJson.getString("chan_id").toLong().toString());
 
       // ACHTUNG: `.getString("").toLong()` MUST be used as `getLong()` can yield incorrect result on big numbers in json
-      val hopTemp = lnrpc.Rpc.Hop.newBuilder()
-        .setChanId(hopJson.getString("chan_id").toLong())
-        .setChanCapacity(hopJson.getString("chan_capacity").toLong())
-        .setExpiry(hopJson.getString("expiry").toInt())
-        .setAmtToForwardMsat(hopJson.getString("amt_to_forward_msat").toLong())
-        .setFeeMsat(hopJson.getString("fee_msat").toLong())
-        .setPubKey(hopJson.getString("pub_key"))
-        .setTlvPayload(hopJson.getBoolean("tlv_payload"));
+      val hopTemp = lnrpc.Rpc.Hop.newBuilder();
+      hopTemp.setChanId(hopJson.getString("chan_id").toLong());
+      if (hopJson.has("chan_capacity")) {
+        hopTemp.setChanCapacity(hopJson.getString("chan_capacity").toLong());
+      }
+      hopTemp.setExpiry(hopJson.getString("expiry").toInt());
+      hopTemp.setAmtToForwardMsat(hopJson.getString("amt_to_forward_msat").toLong());
+      if (hopJson.has("fee_msat")) {
+        hopTemp.setFeeMsat(hopJson.getString("fee_msat").toLong());
+      }
+      hopTemp.setPubKey(hopJson.getString("pub_key"));
+      hopTemp.setTlvPayload(hopJson.getBoolean("tlv_payload"));
 
       if (paymentAddrHex !== "" && c == hopsJson.length()) {
         // only last hop

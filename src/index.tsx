@@ -1,37 +1,7 @@
 import { NativeModules } from 'react-native';
 const util = require('./util');
 
-type NativeType = {
-  start(lndArguments: string): Promise<boolean>;
-  stopDaemon(): Promise<boolean>;
-  wipeLndDir(): Promise<boolean>;
-  unlockWallet(password: string): Promise<boolean>;
-  initWallet(password: string, mnemonics: string): Promise<boolean>;
-  getInfo(): Promise<boolean | string>;
-  getLndDir(): Promise<boolean | string>;
-  listChannels(): Promise<boolean | string>;
-  listPeers(): Promise<boolean | string>;
-  pendingChannels(): Promise<boolean | string>;
-  walletBalance(): Promise<boolean | string>;
-  channelBalance(): Promise<boolean | string>;
-  connectPeer(host: string, pubkeyHex: string): Promise<boolean>;
-  openChannelPsbt(pubkeyHex: string, amountSats: number, privateChannel: boolean): Promise<boolean | string>;
-  fundingStateStepVerify(chanIdHex: string, psbtHex: string): Promise<boolean | string>;
-  fundingStateStepFinalize(chanIdHex: string, psbtHex: string): Promise<boolean | string>;
-  genSeed(): Promise<boolean | string>;
-  sendPaymentSync(paymentRequest: string): Promise<boolean | string>;
-  sendToRouteV2(paymentHashHex: string, paymentAddrHex: string, routesJsonString: string): Promise<boolean | string>;
-  decodePayReq(paymentRequest: string): Promise<boolean | string>;
-  addInvoice(sat: number, memo: string, expiry: number): Promise<boolean | string>;
-  closeChannel(deliveryAddress: string, fundingTxidHex: string, outputIndex: number, force: boolean): Promise<boolean | string>;
-  listPayments(): Promise<boolean | string>;
-  listInvoices(): Promise<boolean | string>;
-  getTransactions(): Promise<boolean | string>;
-  sendAllCoins(address: string): Promise<boolean | string>;
-  getLogs(): Promise<boolean | string>;
-};
-
-const Native: NativeType = NativeModules.RnLnd;
+const Native = NativeModules.RnLnd;
 
 class RnLndImplementation {
   /**
@@ -88,7 +58,7 @@ class RnLndImplementation {
     return RnLndImplementation.jsonOrBoolean(await Native.getInfo());
   }
 
-  initWallet(password: string = 'gsomgsomgsom', mnemonics: string): Promise<boolean> {
+  initWallet(password: string = 'bluewallet', mnemonics: string): Promise<boolean> {
     if (this._inited) {
       throw new Error('LND is already inited or unlocked');
     }
@@ -139,7 +109,7 @@ class RnLndImplementation {
     return Native.wipeLndDir();
   }
 
-  async unlockWallet(password: string = 'gsomgsomgsom'): Promise<boolean> {
+  async unlockWallet(password: string = 'bluewallet'): Promise<boolean> {
     if (this._inited) {
       throw new Error('LND is already inited or unlocked');
     }
@@ -152,8 +122,8 @@ class RnLndImplementation {
     return RnLndImplementation.jsonOrBoolean(await Native.walletBalance());
   }
 
-  async sendPaymentSync(paymentRequest: string): Promise<boolean | object> {
-    return RnLndImplementation.jsonOrBoolean(await Native.sendPaymentSync(paymentRequest));
+  async sendPaymentSync(paymentRequest: string, amtSat: number): Promise<boolean | object> {
+    return RnLndImplementation.jsonOrBoolean(await Native.sendPaymentSync(paymentRequest, amtSat));
   }
 
   async sendToRouteV2(paymentHashHex: string, paymentAddrHex: string, routesJsonString: string): Promise<boolean | object> {
@@ -182,6 +152,10 @@ class RnLndImplementation {
 
   async getTransactions(): Promise<boolean | object> {
     return RnLndImplementation.jsonOrBoolean(await Native.getTransactions());
+  }
+
+  async queryRoutes(sourceHex: string, destHex: string, amtSat: number): Promise<boolean | object> {
+    return RnLndImplementation.jsonOrBoolean(await Native.queryRoutes(sourceHex, destHex, amtSat));
   }
 
   async sendAllCoins(address: string) {
@@ -222,7 +196,7 @@ class RnLndImplementation {
     return this._ready;
   }
 
-  async startUnlockAndWait(password: string = 'gsomgsomgsom') {
+  async startUnlockAndWait(password: string = 'bluewallet') {
     console.warn('starting...');
     await this.start('');
     console.warn('started');
@@ -234,21 +208,62 @@ class RnLndImplementation {
     await this.waitTillReady();
   }
 
-  async payInvoiceViaSendToRoute(bolt11: string) {
+  private isObject(o: any) {
+    return o === Object(o) && !Array.isArray(o) && typeof o !== 'function';
+  }
+
+  private camelToSnakeCase(str: string): string {
+    return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+  }
+
+  camelCase2SnakeCase(o: any): any {
+    if (this.isObject(o)) {
+      const n = {};
+
+      Object.keys(o).forEach((k) => {
+        (n as any)[this.camelToSnakeCase(k)] = this.camelCase2SnakeCase(o[k]);
+      });
+
+      return n;
+    } else if (Array.isArray(o)) {
+      return o.map((i) => {
+        return this.camelCase2SnakeCase(i);
+      });
+    }
+
+    return o;
+  }
+
+  async payInvoiceViaSendToRoute(bolt11: string, freeAmount = false) {
     const decoded: any = await this.decodePayReq(bolt11);
 
     const info: any = await this.getInfo();
-    const amtSat = decoded.numSatoshis ? parseInt(decoded.numSatoshis, 10) : Math.round(decoded.numMsat / 1000);
+    const amtSat: number = freeAmount || decoded.numSatoshis ? parseInt(decoded.numSatoshis, 10) : Math.round(decoded.numMsat / 1000);
     const from = info.identityPubkey;
     const to = decoded.destination;
     const hash = decoded.paymentHash;
 
     const paymentAddrHex = decoded.paymentAddr ? util.base64ToHex(decoded.paymentAddr) : '';
 
-    let url = '';
-    let response = await fetch((url = `http://lndhub-staging.herokuapp.com/queryroutes/${from}/${to}/${amtSat}`));
-    console.warn(url);
-    let json = await response.json();
+    let json;
+
+    // lets try quering route internaly first:
+    try {
+      const routes = await this.queryRoutes(from, to, amtSat);
+      json = this.camelCase2SnakeCase(routes);
+    } catch (_) {}
+
+    if (!json) {
+      // fallback to external router:
+      let url = '';
+      try {
+        let response = await fetch((url = `http://lndhub-staging.herokuapp.com/queryroutes/${from}/${to}/${amtSat}`));
+        console.warn(url);
+        json = await response.json();
+      } catch (_) {
+        throw new Error('Could not find route');
+      }
+    }
 
     const rez = await this.sendToRouteV2(hash, paymentAddrHex, JSON.stringify(json));
     console.warn(rez);

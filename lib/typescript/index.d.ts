@@ -33,7 +33,7 @@ declare class RnLndImplementation {
     wipeLndDir(): Promise<boolean>;
     unlockWallet(password?: string): Promise<boolean>;
     walletBalance(): Promise<boolean | object>;
-    sendPaymentSync(paymentRequest: string): Promise<boolean | object>;
+    sendPaymentSync(paymentRequest: string, amtSat: number): Promise<boolean | object>;
     sendToRouteV2(paymentHashHex: string, paymentAddrHex: string, routesJsonString: string): Promise<boolean | object>;
     decodePayReq(paymentRequest: string): Promise<boolean | object>;
     addInvoice(sat: number, memo: string, expiry: number): Promise<boolean | object>;
@@ -41,6 +41,7 @@ declare class RnLndImplementation {
     listPayments(): Promise<boolean | object>;
     listInvoices(): Promise<boolean | object>;
     getTransactions(): Promise<boolean | object>;
+    queryRoutes(sourceHex: string, destHex: string, amtSat: number): Promise<boolean | object>;
     sendAllCoins(address: string): Promise<any>;
     getLndDir(): Promise<boolean | string>;
     getLogs(): Promise<boolean | string>;
@@ -51,7 +52,10 @@ declare class RnLndImplementation {
      */
     isReady(): Promise<boolean>;
     startUnlockAndWait(password?: string): Promise<void>;
-    payInvoiceViaSendToRoute(bolt11: string): Promise<boolean | object>;
+    private isObject;
+    private camelToSnakeCase;
+    camelCase2SnakeCase(o: any): any;
+    payInvoiceViaSendToRoute(bolt11: string, freeAmount?: boolean): Promise<boolean | object>;
 }
 declare const _default: RnLndImplementation;
 export default _default;

@@ -384,6 +384,27 @@ class DecodePayReqCallback(private val promise: Promise) : Callback {
   }
 }
 
+class QueryRoutesCallbackCallback(private val promise: Promise) : Callback {
+  override fun onError(e: Exception) {
+    Log.v("ReactNativeLND", "QueryRoutesCallbackCallback err" + e.message);
+    this.promise.resolve(false);
+  }
+
+  override fun onResponse(bytes: ByteArray?) {
+    Log.v("ReactNativeLND", "QueryRoutesCallbackCallback ok");
+    try {
+      if (bytes != null) {
+        val resp= lnrpc.Rpc.QueryRoutesResponse.parseFrom(bytes);
+        this.promise.resolve(respToJson(resp));
+      } else {
+        this.promise.resolve(false);
+      }
+    } catch (e: InvalidProtocolBufferException) {
+      e.printStackTrace();
+      this.promise.resolve(false);
+    }
+  }
+}
 
 class SendToRouteV2Callback(private val promise: Promise) : Callback {
   override fun onError(e: Exception) {

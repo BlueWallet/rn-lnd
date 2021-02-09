@@ -5,9 +5,7 @@ import RnLnd from 'rn-lnd';
 export default function App() {
   const [chanIdHex, setChanIdHex] = React.useState<string>('');
   const [psbtHex, setPsbtHex] = React.useState<string>('');
-  const [bolt11, setBolt11] = React.useState<string>(
-    'lnbc140n1psq4apapp5amr5qvcsr0kp4dnfqj4c8ktwy5d2syc3t6y0j0wufcvcge9fxukqdqqcqzpgsp56p2phszufj54xk38c24c73pvj7pn5mh4zw8kvk77rzvac47h6szq9qyyssq4d2xwm905eg22v8za772l5u0unt628c8vfmerq86dhc62a36d8q5us70xq4h599n8uujk4jraepr5t9dmtnjc9v5ry5dk9fk3e2fh4cpp9ntsv'
-  );
+  const [bolt11, setBolt11] = React.useState<string>('');
 
   React.useEffect(() => {}, []);
 
@@ -95,6 +93,17 @@ export default function App() {
           }}
         />
 
+        <Button
+          title="queryRoutes"
+          onPress={() => {
+            // RnLnd.connectPeer('34.239.230.56:9735', '03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f').then(console.warn);
+            RnLnd.queryRoutes('02e89ca9e8da72b33d896bae51d20e7e6675aa971f7557500b6591b15429e717f1', '03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f', 10).then((rez) => {
+              rez = RnLnd.camelCase2SnakeCase(rez);
+              console.warn(JSON.stringify(rez));
+            });
+          }}
+        />
+
         <TextInput placeholder={'chanIdHex'} onChangeText={(str: string) => setChanIdHex(str)} value={chanIdHex} />
         <TextInput placeholder={'psbtHex'} onChangeText={(str: string) => setPsbtHex(str)} value={psbtHex} />
 
@@ -140,7 +149,7 @@ export default function App() {
         <Button
           title="sendPaymentSync"
           onPress={() => {
-            RnLnd.sendPaymentSync(bolt11).then(console.warn);
+            RnLnd.sendPaymentSync(bolt11, 12).then(console.warn);
           }}
         />
         <Button
