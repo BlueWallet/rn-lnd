@@ -50,7 +50,7 @@ declare class RnLndImplementation {
      * Tells if LND can accept calls after it was unlocked and fully started
      * (i.e. wont throw "server is still in the process of starting" on our calls)
      */
-    isReady(): Promise<boolean>;
+    isReady(): boolean;
     startUnlockAndWait(password?: string): Promise<void>;
     private isObject;
     private camelToSnakeCase;

@@ -192,7 +192,7 @@ class RnLndImplementation {
    * Tells if LND can accept calls after it was unlocked and fully started
    * (i.e. wont throw "server is still in the process of starting" on our calls)
    */
-  async isReady() {
+  isReady() {
     return this._ready;
   }
 
@@ -235,10 +235,16 @@ class RnLndImplementation {
   }
 
   async payInvoiceViaSendToRoute(bolt11: string, freeAmount = false) {
+    let amtSat = 0;
     const decoded: any = await this.decodePayReq(bolt11);
 
+    if (freeAmount) {
+      amtSat = +freeAmount;
+    } else {
+      amtSat = decoded.numSatoshis ? parseInt(decoded.numSatoshis, 10) : Math.round(decoded.numMsat / 1000);
+    }
+
     const info: any = await this.getInfo();
-    const amtSat: number = freeAmount || decoded.numSatoshis ? parseInt(decoded.numSatoshis, 10) : Math.round(decoded.numMsat / 1000);
     const from = info.identityPubkey;
     const to = decoded.destination;
     const hash = decoded.paymentHash;
