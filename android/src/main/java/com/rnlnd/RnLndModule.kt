@@ -164,6 +164,25 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     Lndmobile.fundingStateStep(req.toByteArray(), FundingStateStepCallback(promise));
   }
 
+
+  @ReactMethod
+  fun fundingStateStepCancel(chanIdHex: String, promise: Promise) {
+    Log.v("ReactNativeLND", "fundingStateStep cancelling channel " + chanIdHex);
+
+    val chanId = ByteString.copyFrom(hexStringToByteArray(chanIdHex));
+
+    val fundingshimcancel = lnrpc.Rpc.FundingShimCancel.newBuilder()
+      .setPendingChanId(chanId)
+      .build();
+
+    val req: lnrpc.Rpc.FundingTransitionMsg = lnrpc.Rpc.FundingTransitionMsg
+      .newBuilder()
+      .setShimCancel(fundingshimcancel)
+      .build();
+
+    Lndmobile.fundingStateStep(req.toByteArray(), FundingStateStepCallback(promise));
+  }
+
   @ReactMethod
   fun fundingStateStepFinalize(chanIdHex: String, psbtHex: String, promise: Promise) {
     Log.v("ReactNativeLND", "fundingStateStep finalizing channel " + chanIdHex + " with psbt " + psbtHex);

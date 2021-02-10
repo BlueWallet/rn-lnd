@@ -7,12 +7,14 @@ import com.google.protobuf.MessageOrBuilder
 import lndmobile.Callback
 import lndmobile.RecvStream
 
-class OpenChannelRecvStream(promise: Promise) : RecvStream {
-  private val promise = promise;
-
-  public override fun onError(p0: Exception) {}
+class OpenChannelRecvStream(private val promise: Promise) : RecvStream {
+  public override fun onError(p0: Exception) {
+    Log.v("ReactNativeLND", "OpenChannelRecvStream onError: " + p0.message);
+    promise.resolve(false);
+  }
 
   public override fun onResponse(var1: ByteArray?) {
+    Log.v("ReactNativeLND", "OpenChannelRecvStream onResponse");
     if (var1 != null) {
       val resp: lnrpc.Rpc.OpenStatusUpdate = lnrpc.Rpc.OpenStatusUpdate.parseFrom(var1);
       this.promise.resolve(respToJson(resp));
@@ -22,10 +24,11 @@ class OpenChannelRecvStream(promise: Promise) : RecvStream {
   }
 }
 
-class CloseChannelRecvStream(promise: Promise) : RecvStream {
-  private val promise = promise;
-
-  public override fun onError(p0: Exception) {}
+class CloseChannelRecvStream(private val promise: Promise) : RecvStream {
+  public override fun onError(p0: Exception) {
+    Log.v("ReactNativeLND", "CloseChannelRecvStream onError: " + p0.message);
+    promise.resolve(false);
+  }
 
   public override fun onResponse(var1: ByteArray?) {
     if (var1 != null) {
@@ -38,9 +41,7 @@ class CloseChannelRecvStream(promise: Promise) : RecvStream {
   }
 }
 
-class FundingStateStepCallback(promise: Promise) : Callback {
-  private val promise = promise;
-
+class FundingStateStepCallback(private val promise: Promise) : Callback {
   public override fun onError(p0: Exception) {
     Log.v("ReactNativeLND", "FundingStateStepCallback onError: " + p0.message);
     this.promise.resolve(false);
@@ -88,30 +89,6 @@ class ListChannelsCallback(private val promise: Promise) : Callback {
     if (p0 != null) {
       val resp: lnrpc.Rpc.ListChannelsResponse = lnrpc.Rpc.ListChannelsResponse.parseFrom(p0);
       this.promise.resolve(respToJson(resp));
-
-      /*val gsonPretty = com.google.gson.GsonBuilder().setPrettyPrinting().create();
-
-      val channelsArray = mutableListOf<Any>();
-      resp.channelsList.iterator().forEach {
-        val channelInfoHashMap : HashMap<String, Any> = HashMap<String, Any>();
-        channelInfoHashMap.put("active", it.active);
-        channelInfoHashMap.put("capacity", it.capacity);
-        channelInfoHashMap.put("localBalance", it.localBalance);
-        channelInfoHashMap.put("remoteBalance", it.remoteBalance);
-        channelInfoHashMap.put("chanId", it.chanId);
-        channelInfoHashMap.put("channelPoint", it.channelPoint);
-        channelInfoHashMap.put("initiator", it.initiator);
-        channelInfoHashMap.put("numUpdates", it.numUpdates);
-        channelInfoHashMap.put("remotePubkey", it.remotePubkey);
-        channelInfoHashMap.put("private", it.private);
-        channelInfoHashMap.put("localChanReserveSat", it.localConstraints.chanReserveSat);
-        channelInfoHashMap.put("remoteChanReserveSat", it.remoteConstraints.chanReserveSat);
-        channelInfoHashMap.put("totalSatoshisReceived", it.totalSatoshisReceived);
-        channelInfoHashMap.put("totalSatoshisSent", it.totalSatoshisSent);
-        channelsArray.add(channelInfoHashMap);
-      }
-
-      this.promise.resolve(gsonPretty.toJson(channelsArray));*/
     } else {
       this.promise.resolve(false);
     }
@@ -394,7 +371,7 @@ class QueryRoutesCallbackCallback(private val promise: Promise) : Callback {
     Log.v("ReactNativeLND", "QueryRoutesCallbackCallback ok");
     try {
       if (bytes != null) {
-        val resp= lnrpc.Rpc.QueryRoutesResponse.parseFrom(bytes);
+        val resp = lnrpc.Rpc.QueryRoutesResponse.parseFrom(bytes);
         this.promise.resolve(respToJson(resp));
       } else {
         this.promise.resolve(false);
@@ -473,7 +450,6 @@ class ListPaymentsCallback(private val promise: Promise) : Callback {
     }
   }
 }
-
 
 
 class SendCoinsCallback(private val promise: Promise) : Callback {

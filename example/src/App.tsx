@@ -125,6 +125,14 @@ export default function App() {
         />
 
         <Button
+          title="fundingStateStepCancel"
+          onPress={async () => {
+            const res = await RnLnd.fundingStateStepCancel(chanIdHex);
+            console.warn({ res });
+          }}
+        />
+
+        <Button
           title="walletBalance"
           onPress={() => {
             RnLnd.walletBalance().then(console.warn);

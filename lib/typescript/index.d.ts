@@ -21,6 +21,7 @@ declare class RnLndImplementation {
     connectPeer(host: string, pubkeyHex: string): Promise<boolean>;
     fundingStateStepVerify(chanIdHex: string, psbtHex: string): Promise<boolean | object>;
     fundingStateStepFinalize(chanIdHex: string, psbtHex: string): Promise<boolean | object>;
+    fundingStateStepCancel(chanIdHex: string): Promise<boolean | object>;
     genSeed(): Promise<boolean | string>;
     getInfo(): Promise<boolean | object>;
     initWallet(password: string | undefined, mnemonics: string): Promise<boolean>;

@@ -50,6 +50,10 @@ class RnLndImplementation {
     return RnLndImplementation.jsonOrBoolean(await Native.fundingStateStepFinalize(chanIdHex, psbtHex));
   }
 
+  async fundingStateStepCancel(chanIdHex: string): Promise<boolean | object> {
+    return RnLndImplementation.jsonOrBoolean(await Native.fundingStateStepCancel(chanIdHex));
+  }
+
   genSeed(): Promise<boolean | string> {
     return Native.genSeed();
   }
@@ -176,6 +180,8 @@ class RnLndImplementation {
       const connected = await this.connectPeer('165.227.95.104:9735', '02e89ca9e8da72b33d896bae51d20e7e6675aa971f7557500b6591b15429e717f1');
       if (connected) {
         this._ready = true;
+        this._inited = true;
+        this._started = true;
         break;
       }
       const peers: any = await this.listPeers();
