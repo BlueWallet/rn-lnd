@@ -89,7 +89,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
 
   @ReactMethod
   fun unlockWallet(password: String, promise: Promise) {
-    Log.v("ReactNativeLND", "unlocking wallet with password -->" + password + "<--");
+    Log.v("ReactNativeLND", "unlocking wallet");
 
     val pw: ByteString = ByteString.copyFromUtf8(password);
     val reqUnlock: lnrpc.Walletunlocker.UnlockWalletRequest = lnrpc.Walletunlocker
@@ -102,7 +102,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
 
   @ReactMethod
   fun initWallet(password: String, mnemonics: String, promise: Promise) {
-    Log.v("ReactNativeLND", "init wallet " + password + " " + mnemonics);
+    Log.v("ReactNativeLND", "init wallet");
     val pw: ByteString = ByteString.copyFromUtf8(password);
     val cipherSeed = mnemonics.split(" ").toMutableList();
     val req: lnrpc.Walletunlocker.InitWalletRequest = lnrpc.Walletunlocker
@@ -304,6 +304,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     val req = lnrpc.Rpc.QueryRoutesRequest.newBuilder()
       .setAmt(amtSat.toLong())
       .setPubKey(destHex)
+      .setUseMissionControl(true)
       .setSourcePubKey(sourceHex)
       .build();
 
@@ -312,7 +313,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
 
   @ReactMethod
   fun sendToRouteV2(paymentHashHex: String, paymentAddrHex: String, queryRoutesJsonString: String, promise: Promise) {
-    Log.v("ReactNativeLND", "sendToRouteV2");
+    Log.v("ReactNativeLND", "sendToRouteV2, queryRoutesJsonString=" + queryRoutesJsonString);
 
     val rootJson = JSONObject(queryRoutesJsonString);
     val routesJson = rootJson.getJSONArray("routes");
@@ -342,7 +343,9 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
         hopTemp.setFeeMsat(hopJson.getString("fee_msat").toLong());
       }
       hopTemp.setPubKey(hopJson.getString("pub_key"));
-      hopTemp.setTlvPayload(hopJson.getBoolean("tlv_payload"));
+      if (hopJson.has("tlv_payload")) {
+        hopTemp.setTlvPayload(hopJson.getBoolean("tlv_payload"));
+      }
 
       if (paymentAddrHex !== "" && c == hopsJson.length()) {
         // only last hop

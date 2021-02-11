@@ -36,14 +36,14 @@ export default function App() {
         <Button
           title="unlockWallet"
           onPress={() => {
-            RnLnd.unlockWallet('gsomgsomgsom').then(console.warn);
+            RnLnd.unlockWallet().then(console.warn);
           }}
         />
 
         <Button
           title="initWallet"
           onPress={() => {
-            RnLnd.initWallet('gsomgsomgsom', 'abstract rhythm weird food attract treat mosquito sight royal actor surround ride strike remove guilt catch filter summer mushroom protect poverty cruel chaos pattern').then(
+            RnLnd.initWallet('bluewallet', 'abstract rhythm weird food attract treat mosquito sight royal actor surround ride strike remove guilt catch filter summer mushroom protect poverty cruel chaos pattern').then(
               console.warn
             );
           }}

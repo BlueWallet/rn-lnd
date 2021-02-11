@@ -504,6 +504,8 @@ fun hexStringToByteArray(strArg: String): ByteArray {
   val HEX_CHARS = "0123456789ABCDEF"
   val str = strArg.toUpperCase();
 
+  if (str.length % 2 != 0) return hexStringToByteArray("");
+
   val result = ByteArray(str.length / 2)
 
   for (i in 0 until str.length step 2) {
