@@ -11,7 +11,7 @@ import com.rnlnd.helpers.*
 import lndmobile.Lndmobile
 import org.json.JSONObject
 import java.io.File
-import java.lang.Integer.max
+import java.lang.Integer.min
 import kotlin.random.Random
 
 
@@ -422,7 +422,7 @@ class RnLndModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaM
     File(fileName).forEachLine {
       logLines.add(it);
     }
-    val len = max(100, logLines.size);
+    val len = min(100, logLines.size);
     promise.resolve(logLines.subList(logLines.size - len, logLines.size).joinToString("\n"));
   }
 
