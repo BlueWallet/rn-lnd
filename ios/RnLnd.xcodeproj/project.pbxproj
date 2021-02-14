@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6D2D5D0225D90B9300B2B3FB /* block_headers.bin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6D2D5CB925D9026E00B2B3FB /* block_headers.bin */; };
+		6D2D5D0325D90B9300B2B3FB /* neutrino.db in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6D2D5CBA25D9026E00B2B3FB /* neutrino.db */; };
+		6D2D5D0425D90B9300B2B3FB /* peers.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6D2D5CB825D9026E00B2B3FB /* peers.json */; };
+		6D2D5D0525D90B9300B2B3FB /* reg_filter_headers.bin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6D2D5CB725D9026E00B2B3FB /* reg_filter_headers.bin */; };
 		F4FF95D7245B92E800C19C63 /* RnLnd.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* RnLnd.swift */; };
 /* End PBXBuildFile section */
 
@@ -15,8 +19,12 @@
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "include/$(PRODUCT_NAME)";
-			dstSubfolderSpec = 16;
+			dstSubfolderSpec = 7;
 			files = (
+				6D2D5D0225D90B9300B2B3FB /* block_headers.bin in CopyFiles */,
+				6D2D5D0325D90B9300B2B3FB /* neutrino.db in CopyFiles */,
+				6D2D5D0425D90B9300B2B3FB /* peers.json in CopyFiles */,
+				6D2D5D0525D90B9300B2B3FB /* reg_filter_headers.bin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -4,34 +4,41 @@ import Lndmobile
 
 class RnLnd: NSObject {
     
-    func getLNDDocumentsDirectory() -> String {
+    func getLNDDocumentsDirectory() -> URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDirectory = paths[0]
-        return "\(documentsDirectory.absoluteString)/.lnd"
+        return documentsDirectory.appendingPathComponent(".lnd")
     }
     
     func wipeLndDir() -> Bool {
         do {
-            try FileManager.default.removeItem(atPath: getLNDDocumentsDirectory())
+            try FileManager.default.removeItem(at: getLNDDocumentsDirectory())
             return true
         } catch {
             return false
         }
     }
     func copyFiles() {
-        let directory = "\(getLNDDocumentsDirectory())/data/chain/bitcoin/mainnet"
+        let directory = getLNDDocumentsDirectory().appendingPathComponent( "/data/chain/bitcoin/mainnet")
         do {
-            try FileManager.default.createDirectory(atPath: directory, withIntermediateDirectories: true, attributes: nil)
-        } catch{
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
+        } catch {
             print("copyFiles failed")
+            print(error.localizedDescription)
+            return
         }
-        let filesToCopy = ["block_headers.bin", "neutrino.db", "peers.json", "reg_filter_headers.bin"]
-        for file in filesToCopy {
-            let filePath = Bundle.main.bundleURL.appendingPathComponent(file)
+        let filesToCopy = ["block_headers", "neutrino", "peers", "reg_filter_headers"]
+        let filesToCopyExtension = ["bin", "db", "json", "bin"]
+        for (index, file) in filesToCopy.enumerated() {
+            guard let filePath = Bundle.main.url(forResource: file, withExtension: filesToCopyExtension[index]) else {
+                print("unable to find \(file) in app bundle")
+                return
+            }
             do {
-                try FileManager.default.copyItem(atPath: filePath.absoluteString, toPath: "\(directory)/\(file)")
+                try FileManager.default.copyItem(at: filePath, to: URL(string: "\(directory)/\(file)")!)
             } catch {
                 print("copy \(file) failed")
+                print(error.localizedDescription)
             }
         }
     }
@@ -43,13 +50,13 @@ class RnLnd: NSObject {
     @objc
     func start(_ lndArguments: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "start");
-       
-        if !FileManager.default.fileExists(atPath: "\(getLNDDocumentsDirectory())/data/chain/bitcoin/mainnet/block_headers.bin") {
+        
+        if !FileManager.default.fileExists(atPath: getLNDDocumentsDirectory().appendingPathComponent( "/data/chain/bitcoin/mainnet/block_headers.bin").absoluteString) {
             copyFiles()
         }
         let callback = StartCallback(resolve: resolve, reject: reject)
         let callback2 = StartCallback2(resolve: resolve, reject: reject)
-        LndmobileStart(lndArguments + " --lnddir=" + getLNDDocumentsDirectory(), callback, callback2);
+        LndmobileStart("\(lndArguments) --lnddir=\(getLNDDocumentsDirectory())", callback, callback2);
     }
     
     @objc

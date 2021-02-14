@@ -50,6 +50,7 @@
 		2D02E47B1E0B4A5D006451C7 /* RnLndExample-tvOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "RnLndExample-tvOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2D02E4901E0B4A5D006451C7 /* RnLndExample-tvOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "RnLndExample-tvOSTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		47F7ED3B7971BE374F7B8635 /* Pods-RnLndExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RnLndExample.debug.xcconfig"; path = "Target Support Files/Pods-RnLndExample/Pods-RnLndExample.debug.xcconfig"; sourceTree = "<group>"; };
+		6D2D5D7025D90CB200B2B3FB /* RnLndExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = RnLndExample.entitlements; path = RnLndExample/RnLndExample.entitlements; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = RnLndExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CA3E69C5B9553B26FBA2DF04 /* libPods-RnLndExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-RnLndExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E00ACF0FDA8BF921659E2F9A /* Pods-RnLndExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RnLndExample.release.xcconfig"; path = "Target Support Files/Pods-RnLndExample/Pods-RnLndExample.release.xcconfig"; sourceTree = "<group>"; };
@@ -110,6 +111,7 @@
 		13B07FAE1A68108700A75B9A /* RnLndExample */ = {
 			isa = PBXGroup;
 			children = (
+				6D2D5D7025D90CB200B2B3FB /* RnLndExample.entitlements */,
 				008F07F21AC5B25A0029DE68 /* main.jsbundle */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.m */,
@@ -137,7 +139,6 @@
 				47F7ED3B7971BE374F7B8635 /* Pods-RnLndExample.debug.xcconfig */,
 				E00ACF0FDA8BF921659E2F9A /* Pods-RnLndExample.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -266,6 +267,7 @@
 						TestTargetID = 13B07F861A680F5B00A75B9A;
 					};
 					13B07F861A680F5B00A75B9A = {
+						DevelopmentTeam = A7W54YZ4WU;
 						LastSwiftMigration = 1120;
 					};
 					2D02E47A1E0B4A5D006451C7 = {
@@ -393,10 +395,12 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-RnLndExample/Pods-RnLndExample-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/rn-lnd/rn-lnd.bundle",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/rn-lnd.bundle",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -541,7 +545,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = RnLndExample/RnLndExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A7W54YZ4WU;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = RnLndExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -552,8 +558,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.rnlnd;
 				PRODUCT_NAME = RnLndExample;
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -564,7 +572,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = RnLndExample/RnLndExample.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = A7W54YZ4WU;
 				INFOPLIST_FILE = RnLndExample/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_LDFLAGS = (
@@ -574,7 +584,9 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.rnlnd;
 				PRODUCT_NAME = RnLndExample;
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
