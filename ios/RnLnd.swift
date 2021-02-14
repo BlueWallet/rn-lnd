@@ -10,14 +10,21 @@ class RnLnd: NSObject {
         return documentsDirectory.appendingPathComponent(".lnd")
     }
     
-    func wipeLndDir() -> Bool {
+    @objc
+    func getLndDir(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        let path = getLNDDocumentsDirectory().absoluteString
+        return resolve(path)
+    }
+    
+    @objc func wipeLndDir(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         do {
             try FileManager.default.removeItem(at: getLNDDocumentsDirectory())
-            return true
+            return resolve(true)
         } catch {
-            return false
+            return reject("wipeLndDir", error.localizedDescription, error)
         }
     }
+    
     func copyFiles() {
         let directory = getLNDDocumentsDirectory().appendingPathComponent( "data/chain/bitcoin/mainnet")
         print(directory)
@@ -72,7 +79,9 @@ class RnLnd: NSObject {
             return reject("ReactNativeLND unlockWallet", "unable to generate serialized data", nil)
         }
         
-        LndmobileUnlockWallet(serializedData, UnlockWalletCallback(resolve: resolve, reject: reject))
+        let callback = UnlockWalletCallback(resolve: resolve, reject: reject)
+
+        LndmobileUnlockWallet(serializedData, callback)
     }
     
     @objc
@@ -90,7 +99,9 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return reject(nil, nil, nil)
         }
-        LndmobileInitWallet(serializedData, InitWalletCallback(resolve: resolve, reject: reject))
+        let callback = InitWalletCallback(resolve: resolve, reject: reject)
+        print(callback)
+        return LndmobileInitWallet(serializedData, callback)
     }
     
     @objc
@@ -123,7 +134,8 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return reject(nil, nil, nil)
         }
-        LndmobileListChannels(serializedData, ListChannelsCallback(resolve: resolve, reject: reject))
+        let callback = ListChannelsCallback(resolve: resolve, reject: reject)
+        return LndmobileListChannels(serializedData, callback)
     }
     
     @objc
@@ -200,7 +212,7 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func openChannelPsbt(_ pubkeyHex: String, amountSats: Int, privateChannel: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func openChannelPsbt(_ pubkeyHex: String, amountSats: NSNumber, privateChannel: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         print("ReactNativeLND", "openChannelPsbt");
         
         guard let pubkeyToUse = pubkeyHex.data(using: .utf8) else {
@@ -211,7 +223,7 @@ class RnLnd: NSObject {
         var fundingShim = Lnrpc_FundingShim()
         fundingShim.psbtShim = psbtShim
         var request = Lnrpc_OpenChannelRequest()
-        request.localFundingAmount = Int64(amountSats)
+        request.localFundingAmount = amountSats.int64Value
         request.nodePubkey = pubkeyToUse
         request.fundingShim = fundingShim
         request.private = privateChannel
@@ -278,18 +290,19 @@ class RnLnd: NSObject {
     
     @objc
     func getLogs(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        guard let log = FileManager.default.contents(atPath: "\(getLNDDocumentsDirectory())/logs/bitcoin/mainnet/lnd.log"), let logString = String(data: log, encoding: .utf8) else {
+        let path = getLNDDocumentsDirectory().appendingPathComponent("logs/bitcoin/mainnet/lnd.log")
+        guard let log = FileManager.default.contents(atPath: path.path), let logString = String(data: log, encoding: .utf8) else {
             return reject(nil, nil, nil)
         }
         resolve(logString)
     }
     
     @objc
-    func sendPaymentSync(_ paymentRequest: String, satsAmount: Int64, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func sendPaymentSync(_ paymentRequest: String, satsAmount: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         print("ReactNativeLND", "sendPaymentSync");
         var request = Lnrpc_SendRequest()
         request.paymentRequest = paymentRequest
-        request.amt = satsAmount
+        request.amt = satsAmount.int64Value
         guard let serializedData = try? request.serializedData() else {
             return reject(nil, nil, nil)
         }
@@ -308,13 +321,13 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func addInvoice(_ sat: Int, memo: String, expiry: Int, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func addInvoice(_ sat: NSNumber, memo: String, expiry: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         print("ReactNativeLND", "addInvoice");
         var request = Lnrpc_Invoice()
-        request.value = Int64(sat)
+        request.value = sat.int64Value
         request.memo = memo
         request.private = true
-        request.expiry = Int64(expiry)
+        request.expiry = expiry.int64Value
         guard let serializedData = try? request.serializedData() else {
             return reject(nil, nil, nil)
         }
@@ -322,10 +335,10 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func queryRoutes(_ sourceHex: String, destHex: String, amtSat: Int, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    func queryRoutes(_ sourceHex: String, destHex: String, amtSat: NSNumber, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         print("ReactNativeLND", "queryRoutes");
         var request = Lnrpc_QueryRoutesRequest()
-        request.amt = Int64(amtSat)
+        request.amt = amtSat.int64Value
         request.useMissionControl = true
         request.pubKey = destHex
         request.sourcePubKey = sourceHex
@@ -337,7 +350,7 @@ class RnLnd: NSObject {
     
     @objc
     func decodePayReq(_ paymentRequest: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
-        print("ReactNativeLND", "queryRoutes");
+        print("ReactNativeLND", "decodePayReq");
         var request = Lnrpc_PayReqString()
         request.payReq = paymentRequest
         guard let serializedData = try? request.serializedData() else {
@@ -368,13 +381,12 @@ class RnLnd: NSObject {
         LndmobileListPayments(serializedData, ListPaymentsCallback(resolve: resolve, reject: reject))
     }
     
-    @objc
-    func closeChannel(_ deliveryAddress: String, fundingTxidHex: String, outputIndex: Int, force: Bool,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+    @objc func closeChannel(_ deliveryAddress: String, fundingTxidHex: String, outputIndex: NSNumber, force: Bool,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         print("ReactNativeLND", "closeChannel");
         
         var channelPoint = Lnrpc_ChannelPoint()
         channelPoint.fundingTxidStr = fundingTxidHex
-        channelPoint.outputIndex = UInt32(outputIndex)
+        channelPoint.outputIndex = outputIndex.uint32Value
         
         var request = Lnrpc_CloseChannelRequest()
         request.channelPoint = channelPoint
@@ -384,7 +396,7 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return reject(nil, nil, nil)
         }
-        LndmobileCloseChannel(serializedData, CloseChannelRecvStream(resolve: resolve, reject: reject))
+        return LndmobileCloseChannel(serializedData, CloseChannelRecvStream(resolve: resolve, reject: reject))
     }
     
     @objc
