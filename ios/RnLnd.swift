@@ -19,7 +19,8 @@ class RnLnd: NSObject {
         }
     }
     func copyFiles() {
-        let directory = getLNDDocumentsDirectory().appendingPathComponent( "/data/chain/bitcoin/mainnet")
+        let directory = getLNDDocumentsDirectory().appendingPathComponent( "data/chain/bitcoin/mainnet")
+        print(directory)
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
         } catch {
@@ -35,7 +36,7 @@ class RnLnd: NSObject {
                 return
             }
             do {
-                try FileManager.default.copyItem(at: filePath, to: URL(string: "\(directory)/\(file)")!)
+                try FileManager.default.copyItem(at: filePath, to: URL(string: "\(directory)\(file).\(filesToCopyExtension[index])")!)
             } catch {
                 print("copy \(file) failed")
                 print(error.localizedDescription)
@@ -50,13 +51,13 @@ class RnLnd: NSObject {
     @objc
     func start(_ lndArguments: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
         print("ReactNativeLND", "start");
-        
-        if !FileManager.default.fileExists(atPath: getLNDDocumentsDirectory().appendingPathComponent( "/data/chain/bitcoin/mainnet/block_headers.bin").absoluteString) {
+        let path = getLNDDocumentsDirectory().appendingPathComponent( "data/chain/bitcoin/mainnet/block_headers.bin")
+        if !FileManager.default.fileExists(atPath: path.path) {
             copyFiles()
         }
         let callback = StartCallback(resolve: resolve, reject: reject)
         let callback2 = StartCallback2(resolve: resolve, reject: reject)
-        LndmobileStart("\(lndArguments) --lnddir=\(getLNDDocumentsDirectory())", callback, callback2);
+        LndmobileStart("\(lndArguments) --lnddir=\(getLNDDocumentsDirectory().path)", callback, callback2);
     }
     
     @objc

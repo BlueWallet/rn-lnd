@@ -395,12 +395,18 @@
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-RnLndExample/Pods-RnLndExample-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/React-Core/AccessibilityResources.bundle",
-				"${PODS_CONFIGURATION_BUILD_DIR}/rn-lnd/rn-lnd.bundle",
+				"${PODS_ROOT}/../../../ios/block_headers.bin",
+				"${PODS_ROOT}/../../../ios/neutrino.db",
+				"${PODS_ROOT}/../../../ios/peers.json",
+				"${PODS_ROOT}/../../../ios/reg_filter_headers.bin",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AccessibilityResources.bundle",
-				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/rn-lnd.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/block_headers.bin",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/neutrino.db",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/peers.json",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/reg_filter_headers.bin",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

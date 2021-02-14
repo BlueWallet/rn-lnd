@@ -14,11 +14,8 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/Overtorment/rn-lnd.git", :tag => "#{s.version}" }
 
   
-  s.source_files = "ios/**/*.{h,m,mm,swift,bin,db,json}"
-  s.resource_bundle = {
-    s.name => ['ios/block_headers.bin','ios/neutrino.db','ios/peers.json','ios/reg_filter_headers.bin'],
-  }
-
+  s.source_files = "ios/**/*.{h,m,mm,swift}"
+  s.resources = "ios/*.{bin,db,json}"
 
   s.dependency "React-Core"
   s.dependency "SwiftProtobuf"

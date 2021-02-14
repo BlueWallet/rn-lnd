@@ -7,10 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6D2D5D0225D90B9300B2B3FB /* block_headers.bin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6D2D5CB925D9026E00B2B3FB /* block_headers.bin */; };
-		6D2D5D0325D90B9300B2B3FB /* neutrino.db in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6D2D5CBA25D9026E00B2B3FB /* neutrino.db */; };
-		6D2D5D0425D90B9300B2B3FB /* peers.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6D2D5CB825D9026E00B2B3FB /* peers.json */; };
-		6D2D5D0525D90B9300B2B3FB /* reg_filter_headers.bin in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6D2D5CB725D9026E00B2B3FB /* reg_filter_headers.bin */; };
 		F4FF95D7245B92E800C19C63 /* RnLnd.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* RnLnd.swift */; };
 /* End PBXBuildFile section */
 
@@ -21,10 +17,6 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 7;
 			files = (
-				6D2D5D0225D90B9300B2B3FB /* block_headers.bin in CopyFiles */,
-				6D2D5D0325D90B9300B2B3FB /* neutrino.db in CopyFiles */,
-				6D2D5D0425D90B9300B2B3FB /* peers.json in CopyFiles */,
-				6D2D5D0525D90B9300B2B3FB /* reg_filter_headers.bin in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,10 +25,6 @@
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libRnLnd.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRnLnd.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6D283A15259E2FE900FA67FD /* compiled_lnd */ = {isa = PBXFileReference; lastKnownFileType = folder; path = compiled_lnd; sourceTree = "<group>"; };
-		6D2D5CB725D9026E00B2B3FB /* reg_filter_headers.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = reg_filter_headers.bin; sourceTree = "<group>"; };
-		6D2D5CB825D9026E00B2B3FB /* peers.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = peers.json; sourceTree = "<group>"; };
-		6D2D5CB925D9026E00B2B3FB /* block_headers.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = block_headers.bin; sourceTree = "<group>"; };
-		6D2D5CBA25D9026E00B2B3FB /* neutrino.db */ = {isa = PBXFileReference; lastKnownFileType = file; path = neutrino.db; sourceTree = "<group>"; };
 		6D587BC125A60DB6002F15F2 /* RnLndCallbacks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RnLndCallbacks.swift; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* RnLnd.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RnLnd.m; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* RnLnd-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RnLnd-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -65,10 +53,6 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-				6D2D5CB925D9026E00B2B3FB /* block_headers.bin */,
-				6D2D5CBA25D9026E00B2B3FB /* neutrino.db */,
-				6D2D5CB825D9026E00B2B3FB /* peers.json */,
-				6D2D5CB725D9026E00B2B3FB /* reg_filter_headers.bin */,
 				F4FF95D6245B92E800C19C63 /* RnLnd.swift */,
 				B3E7B5891CC2AC0600A0062D /* RnLnd.m */,
 				F4FF95D5245B92E700C19C63 /* RnLnd-Bridging-Header.h */,
