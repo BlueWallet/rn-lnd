@@ -292,7 +292,7 @@ class WalletBalanceCallback: NSObject, LndmobileCallbackProtocol {
         print("ReactNativeLND", "WalletBalanceCallback ok")
         guard let p0 = p0, let response = try? Lnrpc_WalletBalanceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return reject("WalletBalanceCallback unable to generate string from response", nil, nil) }
         print("ReactNativeLND resp: \(jsonResponse)")
-        resolve(true)
+        resolve(jsonResponse)
     }
 }
 
