@@ -21,5 +21,20 @@ RCT_EXTERN_METHOD(genSeed:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseReje
 RCT_EXTERN_METHOD(addInvoice:(NSInteger)sat memo:(NSString *)memo expiry:(NSInteger)expiry resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(closeChannel:(NSString *)deliveryAddress fundingTxidHex:(NSString *)fundingTxidHex outputIndex:(NSInteger)outputIndex force:(BOOL)force resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(stopDaemon:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(listPeers:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(listInvoices:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(getTransactions:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(queryRoutes:(NSString *)sourceHex
+                  destHex:(NSString *)destHex
+                  amtSat(NSinteger)amtSat
+                  resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(listPayments:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(decodePayReq:(NSString *)paymentRequest resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(sendAllCoins:(NSString *)address resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(fundingStateStepCancel:(NSString *)chanIdHex resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(fundingStateStepCancel:(NSString *)paymentHashHex
+                  paymentAddrHex:(NSString *)paymentAddrHex
+                  queryRoutesJsonString:(NSString *)queryRoutesJsonString
+                  resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 
 @end

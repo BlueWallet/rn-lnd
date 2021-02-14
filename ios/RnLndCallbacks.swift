@@ -24,7 +24,7 @@ class StartCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "lnd started ===========================================================================")
-        resolve(p0)
+        resolve(true)
     }
 }
 
@@ -151,6 +151,32 @@ class GetInfoCallback: NSObject, LndmobileCallbackProtocol {
     }
 }
 
+
+class GetTransactionsCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    var reject: RCTPromiseRejectBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        self.resolve = resolve
+        self.reject = reject
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "GetTransactionsCallback error \(String(describing: p0?.localizedDescription))");
+        reject("GetTransactionsCallback onError", p0?.localizedDescription, p0)
+    }
+    
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "GetTransactionsCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_TransactionDetails(serializedData: p0), let jsonResponse = try? response.jsonString() else { return reject("GetInfoCallback unable to generate string from response", nil, nil)
+            
+        }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(jsonResponse)
+    }
+}
+
 class PendingChannelsCallback: NSObject, LndmobileCallbackProtocol {
     
     var resolve: RCTPromiseResolveBlock
@@ -172,7 +198,7 @@ class PendingChannelsCallback: NSObject, LndmobileCallbackProtocol {
             return reject("PendingChannelsCallback unable to generate string from response", nil, nil)
         }
         print("ReactNativeLND resp: \(jsonResponse)")
-        resolve(true)
+        resolve(jsonResponse)
     }
 }
 
@@ -197,7 +223,7 @@ class ListChannelsCallback: NSObject, LndmobileCallbackProtocol {
             return reject("ListChannelsCallback unable to generate string from response", nil, nil)
         }
         print("ReactNativeLND resp: \(jsonResponse)")
-        resolve(true)
+        resolve(jsonResponse)
     }
 }
 
@@ -224,6 +250,29 @@ class ChannelBalanceCallback: NSObject, LndmobileCallbackProtocol {
     }
 }
 
+class ListPeersCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    var reject: RCTPromiseRejectBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        self.resolve = resolve
+        self.reject = reject
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "ListPeersCallback error \(String(describing: p0?.localizedDescription))");
+        reject("ListPeersCallback onError", p0?.localizedDescription, p0)
+    }
+    
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "ListPeersCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_ListPeersResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return reject("ListPeersCallback unable to generate string from response", nil, nil) }
+        print("ReactNativeLND ListPeersCallback resp: \(jsonResponse)")
+        resolve(jsonResponse)
+    }
+}
+
 class WalletBalanceCallback: NSObject, LndmobileCallbackProtocol {
     
     var resolve: RCTPromiseResolveBlock
@@ -246,6 +295,123 @@ class WalletBalanceCallback: NSObject, LndmobileCallbackProtocol {
         resolve(true)
     }
 }
+
+class ListPaymentsCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    var reject: RCTPromiseRejectBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        self.resolve = resolve
+        self.reject = reject
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "ListPaymentsCallback error \(String(describing: p0?.localizedDescription))");
+        reject("ListPaymentsCallback onError", p0?.localizedDescription, p0)
+    }
+    
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "ListPaymentsCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_ListPaymentsResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return reject("ListPaymentsCallback unable to generate string from response", nil, nil) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(jsonResponse)
+    }
+}
+
+class SendCoinsCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    var reject: RCTPromiseRejectBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        self.resolve = resolve
+        self.reject = reject
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "SendCoinsCallback error \(String(describing: p0?.localizedDescription))");
+        reject("SendCoinsCallback onError", p0?.localizedDescription, p0)
+    }
+    
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "SendCoinsCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_SendCoinsResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return reject("SendCoinsCallback unable to generate string from response", nil, nil) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(jsonResponse)
+    }
+}
+
+class ListInvoicesCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    var reject: RCTPromiseRejectBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        self.resolve = resolve
+        self.reject = reject
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "ListInvoicesCallback error \(String(describing: p0?.localizedDescription))");
+        reject("ListInvoicesCallback onError", p0?.localizedDescription, p0)
+    }
+    
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "ListInvoicesCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_ListInvoiceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return reject("ListInvoicesCallback unable to generate string from response", nil, nil) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(jsonResponse)
+    }
+}
+
+class QueryRoutesCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    var reject: RCTPromiseRejectBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        self.resolve = resolve
+        self.reject = reject
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "QueryRoutesCallback error \(String(describing: p0?.localizedDescription))");
+        reject("QueryRoutesCallback onError", p0?.localizedDescription, p0)
+    }
+    
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "QueryRoutesCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_QueryRoutesResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return reject("QueryRoutesCallback unable to generate string from response", nil, nil) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(jsonResponse)
+    }
+}
+
+class DecodePayReqCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    var reject: RCTPromiseRejectBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        self.resolve = resolve
+        self.reject = reject
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "DecodePayReqCallback error \(String(describing: p0?.localizedDescription))");
+        reject("DecodePayReqCallback onError", p0?.localizedDescription, p0)
+    }
+    
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "DecodePayReqCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_PayReq(serializedData: p0), let jsonResponse = try? response.jsonString() else { return reject("DecodePayReqCallback unable to generate string from response", nil, nil) }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(jsonResponse)
+    }
+}
+
+
 
 class AddInvoiceCallback: NSObject, LndmobileCallbackProtocol {
     
@@ -332,9 +498,9 @@ class FundingStateStepCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "FundingStateStepCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_FundingStateStepResp(serializedData: p0), let jsonResponse = try? response.jsonString() else { return reject("FundingStateCallback unable to generate string from response", nil, nil)  }
+        guard let p0 = p0, let response = try? Lnrpc_FundingStateStepResp(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(true) }
         print("ReactNativeLND resp: \(jsonResponse)")
-        resolve(true)
+        resolve(jsonResponse)
     }
 }
 
@@ -380,9 +546,10 @@ class CloseChannelRecvStream: LndmobileRecvStream {
     
     override func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "CloseChannelRecvStream ok")
-        guard let p0 = p0, let response = try? Lnrpc_CloseStatusUpdate(serializedData: p0), let jsonResponse = try? response.jsonString() else { return reject("CloseChannelRecvStream unable to generate string from response", nil, nil)
+        guard let p0 = p0, let response = try? Lnrpc_CloseStatusUpdate(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(true)
         }
         print("ReactNativeLND resp: \(jsonResponse)")
-        resolve(true)
+        resolve(jsonResponse)
     }
 }
+
