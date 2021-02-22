@@ -53,6 +53,82 @@ class RnLnd: NSObject {
     
     @objc
     func sendToRouteV2(paymentHashHex: String, paymentAddrHex: String, queryRoutesJsonString: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) -> Void {
+        print("ReactNativeLND", "sendRouteV2 queryRoutesJsonString = \(queryRoutesJsonString)");
+        do {
+            if let data = queryRoutesJsonString.data(using: .utf8), let jsonArray = try JSONSerialization.jsonObject(with: data, options : .allowFragments) as? Dictionary<String,Any>
+            {
+               print(jsonArray) // use the json here
+                let routesJSON = jsonArray["routes"] as? [Dictionary<String,Any>]
+                let routeJSON = routesJSON?.first
+                let hopsJSON = routeJSON?["hops"] as? [Dictionary<String,Any>]
+                var routeTemp = Lnrpc_Route()
+                if let totalAmountMSat = routeJSON?["total_amt_msat"] as? String, let totalAmountMSatInt = Int64(totalAmountMSat) {
+                    routeTemp.totalAmt = totalAmountMSatInt
+                }
+                if let totalFeesMSat = routeJSON?["total_fees_msat"] as? String, let totalFeesMSatInt = Int64(totalFeesMSat) {
+                    routeTemp.totalFeesMsat = totalFeesMSatInt
+                }
+                if let totalTimeLock = routeJSON?["total_time_lock"] as? String, let totalTimeLockInt = UInt32(totalTimeLock) {
+                    routeTemp.totalTimeLock = totalTimeLockInt
+                }
+                
+                var hopsArray = [Lnrpc_Hop]()
+                if let hops = hopsJSON {
+                    for (index, hop) in hops.enumerated() {
+                        var hopTemp = Lnrpc_Hop()
+                        
+                        if let chanID = hop["chan_id"] as? String, let chanIDInt = UInt64(chanID) {
+                            hopTemp.chanID = chanIDInt
+                        }
+                        if let chanCapacity = hop["chan_capacity"] as? String, let chanCapacityInt = Int64(chanCapacity) {
+                            hopTemp.chanCapacity = chanCapacityInt
+                        }
+                        if let expiry = hop["expiry"] as? String, let expiryInt = UInt32(expiry) {
+                            hopTemp.expiry = expiryInt
+                        }
+                        if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
+                            hopTemp.amtToForwardMsat = forwardMSatInt
+                        }
+                        if let feeMSat = hop["fee_msat"] as? String, let feeMSatInt = Int64(feeMSat) {
+                            hopTemp.feeMsat = feeMSatInt
+                        }
+                        if let pubKey = hop["pub_key"] as? String {
+                            hopTemp.pubKey = pubKey
+                        }
+                        if let tlvPayLoad = hop["tlv_payload"] as? Bool {
+                            hopTemp.tlvPayload = tlvPayLoad
+                        }
+                        if (!paymentAddrHex.isEmpty && hops.count - 1 == index) {
+                            var mppRecord = Lnrpc_MPPRecord()
+                            if let paymentAddrData = paymentAddrHex.data(using: .utf8) {
+                                mppRecord.paymentAddr = paymentAddrData
+                            }
+                            if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
+                                mppRecord.totalAmtMsat = forwardMSatInt
+                            }
+                            hopTemp.mppRecord = mppRecord
+                        }
+                        hopsArray.append(hopTemp)
+                    }
+                }
+                routeTemp.hops = hopsArray
+                
+                var request = Routerrpc_SendToRouteRequest()
+                if let paymentHashHexData = paymentHashHex.data(using: .utf8) {
+                    request.paymentHash = paymentHashHexData
+                    request.route = routeTemp
+                }
+                guard let serializedData = try? request.serializedData() else { return }
+                let callback = SendToRouteCallback(resolve: resolve, reject: reject)
+                LndmobileSendToRouteSync(serializedData, callback)
+                
+            } else {
+                print("bad json")
+            }
+        } catch let error as NSError {
+            print(error)
+        }
+        
     }
     
     @objc

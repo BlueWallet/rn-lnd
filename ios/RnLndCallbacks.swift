@@ -126,6 +126,31 @@ class InitWalletCallback: NSObject, LndmobileCallbackProtocol {
     }
 }
 
+class SendToRouteCallback: NSObject, LndmobileCallbackProtocol {
+    
+    var resolve: RCTPromiseResolveBlock
+    var reject: RCTPromiseRejectBlock
+    
+    init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
+        self.resolve = resolve
+        self.reject = reject
+    }
+    
+    func onError(_ p0: Error?) {
+        print("ReactNativeLND", "SendToRouteCallback error \(String(describing: p0?.localizedDescription))");
+        reject("SendToRouteCallback onError", p0?.localizedDescription, p0)
+    }
+    
+    func onResponse(_ p0: Data?) {
+        print("ReactNativeLND", "SendToRouteCallback ok")
+        guard let p0 = p0, let response = try? Lnrpc_HTLCAttempt(serializedData: p0), let jsonResponse = try? response.jsonString() else {    return reject("SendToRouteCallback unable to generate string from response", nil, nil)
+            
+        }
+        print("ReactNativeLND resp: \(jsonResponse)")
+        resolve(jsonResponse)
+    }
+}
+
 class GetInfoCallback: NSObject, LndmobileCallbackProtocol {
     
     var resolve: RCTPromiseResolveBlock
@@ -150,7 +175,6 @@ class GetInfoCallback: NSObject, LndmobileCallbackProtocol {
         resolve(true)
     }
 }
-
 
 class GetTransactionsCallback: NSObject, LndmobileCallbackProtocol {
     
