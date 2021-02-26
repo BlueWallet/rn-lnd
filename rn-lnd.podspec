@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
 
   
   s.source_files = "ios/**/*.{h,m,mm,swift}"
-  
+  s.resources = "ios/*.{bin,db,json}"
 
   s.dependency "React-Core"
   s.dependency "SwiftProtobuf"
