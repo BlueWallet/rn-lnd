@@ -146,7 +146,7 @@ class GetInfoCallback: NSObject, LndmobileCallbackProtocol {
         guard let p0 = p0, let response = try? Lnrpc_GetInfoResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else {     return resolve(false)
         }
         print("ReactNativeLND resp: \(jsonResponse)")
-        resolve(true)
+        resolve(jsonResponse)
     }
 }
 
@@ -236,7 +236,7 @@ class ChannelBalanceCallback: NSObject, LndmobileCallbackProtocol {
         print("ReactNativeLND", "ChannelBalanceCallback ok")
         guard let p0 = p0, let response = try? Lnrpc_ChannelBalanceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND resp: \(jsonResponse)")
-        resolve(true)
+        resolve(jsonResponse)
     }
 }
 
@@ -427,7 +427,7 @@ class SendPaymentSyncCallback: NSObject, LndmobileCallbackProtocol {
         print("ReactNativeLND", "SendPaymentSyncCallback ok")
         guard let p0 = p0, let response = try? Lnrpc_SendResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false)  }
         print("ReactNativeLND resp: \(jsonResponse)")
-        resolve(true)
+        resolve(jsonResponse)
     }
 }
 
