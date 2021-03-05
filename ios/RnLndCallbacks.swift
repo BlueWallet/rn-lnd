@@ -480,43 +480,45 @@ class FundingStateStepCallback: NSObject, LndmobileCallbackProtocol {
     }
 }
 
-class OpenChannelRecvStream: LndmobileRecvStream {
+
+class OpenChannelCallback: NSObject, LndmobileCallbackProtocol {
     
     var resolve: RCTPromiseResolveBlock
     
     init(resolve: @escaping RCTPromiseResolveBlock) {
         self.resolve = resolve
-        super.init()
     }
     
-    override func onError(_ p0: Error?) {
-        print("ReactNativeLND", "OpenChannelRecvStream error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
-    }
-    
-    override func onResponse(_ p0: Data?) {
-        print("ReactNativeLND", "OpenChannelRecvStream ok")
+    func onResponse(_ p0: Data?) {
+        
         guard let p0 = p0, let response = try? Lnrpc_OpenStatusUpdate(serializedData: p0), let jsonResponse = try? response.jsonString() else {             return resolve(false)  }
-        print("ReactNativeLND resp: \(jsonResponse)")
-        resolve(true)
+        resolve(jsonResponse)
+    }
+    
+    func onError(_ p0: Error?) {
+        if p0?.localizedDescription != "EOF" {
+            print("OpenChannel error response - \(p0?.localizedDescription ?? "")")
+            resolve(false)
+        } else {
+            resolve(false)
+        }
     }
 }
 
-class CloseChannelRecvStream: LndmobileRecvStream {
+class CloseChannelCallback: NSObject, LndmobileCallbackProtocol {
     
     var resolve: RCTPromiseResolveBlock
     
     init(resolve: @escaping RCTPromiseResolveBlock) {
         self.resolve = resolve
-        super.init()
     }
     
-    override func onError(_ p0: Error?) {
+    func onError(_ p0: Error?) {
         print("ReactNativeLND", "CloseChannelRecvStream error \(String(describing: p0?.localizedDescription))");
         return resolve(false)
     }
     
-    override func onResponse(_ p0: Data?) {
+    func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "CloseChannelRecvStream ok")
         guard let p0 = p0, let response = try? Lnrpc_CloseStatusUpdate(serializedData: p0), let jsonResponse = try? response.jsonString() else {  return resolve(false)
         }

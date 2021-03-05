@@ -177,7 +177,7 @@ class RnLnd: NSObject {
         }
         let callback = InitWalletCallback(resolve: resolve)
         print(callback)
-        return LndmobileInitWallet(serializedData, callback)
+        LndmobileInitWallet(serializedData, callback)
     }
     
     @objc
@@ -211,7 +211,7 @@ class RnLnd: NSObject {
             return resolve(false)
         }
         let callback = ListChannelsCallback(resolve: resolve)
-        return LndmobileListChannels(serializedData, callback)
+        LndmobileListChannels(serializedData, callback)
     }
     
     @objc
@@ -305,7 +305,8 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        LndmobileOpenChannel(serializedData, OpenChannelRecvStream(resolve: resolve))
+        
+        LndmobileOpenChannelSync(serializedData, OpenChannelCallback(resolve: resolve))
     }
     
     @objc
@@ -471,7 +472,7 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        return LndmobileCloseChannel(serializedData, CloseChannelRecvStream(resolve: resolve))
+        LndmobileClosedChannels(serializedData, CloseChannelCallback(resolve: resolve))
     }
     
     @objc
