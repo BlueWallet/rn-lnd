@@ -138,9 +138,7 @@ class RnLnd: NSObject {
         if !FileManager.default.fileExists(atPath: path.path) {
             copyFiles()
         }
-        let callback = StartCallback(resolve: resolve)
-        let callback2 = StartCallback2(resolve: resolve)
-        LndmobileStart("\(lndArguments) --lnddir=\(getLNDDocumentsDirectory().path)", callback, callback2);
+        LndmobileStart("\(lndArguments) --lnddir=\(getLNDDocumentsDirectory().path)", StartCallback(resolve: resolve), StartCallback2())
     }
     
     @objc

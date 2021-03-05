@@ -27,21 +27,13 @@ class StartCallback: NSObject, LndmobileCallbackProtocol {
 }
 
 class StartCallback2: NSObject, LndmobileCallbackProtocol {
-    
-    var resolve: RCTPromiseResolveBlock
-    
-    init(resolve: @escaping RCTPromiseResolveBlock) {
-        self.resolve = resolve
-    }
-    
-    
+        
     func onError(_ p0: Error?) {
-        return resolve(false)
+        print("ReactNativeLND", "StartCallback2 error");
     }
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "lnd is ready ===========================================================================");
-        return resolve(true)
     }
 }
 
@@ -56,7 +48,7 @@ class UnlockWalletCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "UnlockWalletCallback error \(String(describing: p0?.localizedDescription))");
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -79,7 +71,7 @@ class GenSeedCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "GenSeedCallback error \(String(describing: p0?.localizedDescription))");
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -168,7 +160,7 @@ class GetTransactionsCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "GetTransactionsCallback error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -214,7 +206,7 @@ class ListChannelsCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "ListChannelsCallback error \(String(describing: p0?.localizedDescription))");
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -237,7 +229,7 @@ class ChannelBalanceCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "ChannelBalanceCallback error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -258,7 +250,7 @@ class ListPeersCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "ListPeersCallback error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -279,7 +271,7 @@ class WalletBalanceCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "WalletBalanceCallback error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -300,7 +292,7 @@ class ListPaymentsCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "ListPaymentsCallback error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -321,7 +313,7 @@ class SendCoinsCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "SendCoinsCallback error \(String(describing: p0?.localizedDescription))");
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -342,7 +334,7 @@ class ListInvoicesCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "ListInvoicesCallback error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -363,7 +355,7 @@ class QueryRoutesCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "QueryRoutesCallback error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -384,7 +376,7 @@ class DecodePayReqCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "DecodePayReqCallback error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -407,14 +399,14 @@ class AddInvoiceCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "AddInvoiceCallback error \(String(describing: p0?.localizedDescription))");
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "AddInvoiceCallback ok")
         guard let p0 = p0, let response = try? Lnrpc_AddInvoiceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND resp: \(jsonResponse)")
-        resolve(true)
+        resolve(jsonResponse)
     }
 }
 
@@ -428,7 +420,7 @@ class SendPaymentSyncCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "SendPaymentSyncCallback error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -449,7 +441,7 @@ class EmptyResponseBooleanCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "callback onError");
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -469,7 +461,7 @@ class FundingStateStepCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "FundingStateStepCallback error \(String(describing: p0?.localizedDescription))")
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
@@ -491,7 +483,9 @@ class OpenChannelCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         
-        guard let p0 = p0, let response = try? Lnrpc_OpenStatusUpdate(serializedData: p0), let jsonResponse = try? response.jsonString() else {             return resolve(false)  }
+        guard let p0 = p0, let response = try? Lnrpc_OpenStatusUpdate(serializedData: p0), let jsonResponse = try? response.jsonString() else {
+            return resolve(false)
+        }
         resolve(jsonResponse)
     }
     
@@ -515,7 +509,7 @@ class CloseChannelCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "CloseChannelRecvStream error \(String(describing: p0?.localizedDescription))");
-        return resolve(false)
+        resolve(false)
     }
     
     func onResponse(_ p0: Data?) {
