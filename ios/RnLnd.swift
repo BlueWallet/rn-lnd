@@ -288,16 +288,17 @@ class RnLnd: NSObject {
     func openChannelPsbt(_ pubkeyHex: String, amountSats: NSNumber, privateChannel: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         print("ReactNativeLND", "openChannelPsbt");
         
-        guard let pubkeyToUse = pubkeyHex.data(using: .utf8) else {
-            return resolve(false)
-        }
+
+        var psbtShim = Lnrpc_PsbtShim()
+        let bytes = [UInt32](repeating: 0, count: 32).map { _ in arc4random() }
+        let data = Data(bytes: bytes, count: 32)
+        psbtShim.pendingChanID = data
         
-        let psbtShim = Lnrpc_PsbtShim()
         var fundingShim = Lnrpc_FundingShim()
         fundingShim.psbtShim = psbtShim
         var request = Lnrpc_OpenChannelRequest()
         request.localFundingAmount = amountSats.int64Value
-        request.nodePubkey = pubkeyToUse
+        request.nodePubkeyString = pubkeyHex
         request.fundingShim = fundingShim
         request.private = privateChannel
         guard let serializedData = try? request.serializedData() else {
