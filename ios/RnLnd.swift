@@ -284,10 +284,31 @@ class RnLnd: NSObject {
         LndmobileFundingStateStep(serializedData, FundingStateStepCallback(resolve: resolve))
     }
     
+    func stringToBytes(_ string: String) -> [UInt8]? {
+        let length = string.count
+        if length & 1 != 0 {
+            return nil
+        }
+        var bytes = [UInt8]()
+        bytes.reserveCapacity(length/2)
+        var index = string.startIndex
+        for _ in 0..<length/2 {
+            let nextIndex = string.index(index, offsetBy: 2)
+            if let b = UInt8(string[index..<nextIndex], radix: 16) {
+                bytes.append(b)
+            } else {
+                return nil
+            }
+            index = nextIndex
+        }
+        return bytes
+    }
+    
     @objc
     func openChannelPsbt(_ pubkeyHex: String, amountSats: NSNumber, privateChannel: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         print("ReactNativeLND", "openChannelPsbt");
         
+        guard let nodePubKey = stringToBytes(pubkeyHex) else { return resolve(false) }
 
         var psbtShim = Lnrpc_PsbtShim()
         let bytes = [UInt32](repeating: 0, count: 32).map { _ in arc4random() }
@@ -298,14 +319,15 @@ class RnLnd: NSObject {
         fundingShim.psbtShim = psbtShim
         var request = Lnrpc_OpenChannelRequest()
         request.localFundingAmount = amountSats.int64Value
-        request.nodePubkeyString = pubkeyHex
+        request.nodePubkey = Data(nodePubKey)
         request.fundingShim = fundingShim
         request.private = privateChannel
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
         
-        LndmobileOpenChannelSync(serializedData, OpenChannelCallback(resolve: resolve))
+        let stream = OpenChannelRecvStream(resolve: resolve)
+        LndmobileOpenChannel(serializedData,stream)
     }
     
     @objc
@@ -471,7 +493,8 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        LndmobileClosedChannels(serializedData, CloseChannelCallback(resolve: resolve))
+        
+        LndmobileCloseChannel(serializedData, CloseChannelCallback(resolve: resolve))
     }
     
     @objc

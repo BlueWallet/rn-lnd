@@ -473,7 +473,7 @@ class FundingStateStepCallback: NSObject, LndmobileCallbackProtocol {
 }
 
 
-class OpenChannelCallback: NSObject, LndmobileCallbackProtocol {
+class OpenChannelRecvStream: NSObject, LndmobileRecvStreamProtocol {
     
     var resolve: RCTPromiseResolveBlock
     
@@ -499,7 +499,7 @@ class OpenChannelCallback: NSObject, LndmobileCallbackProtocol {
     }
 }
 
-class CloseChannelCallback: NSObject, LndmobileCallbackProtocol {
+class CloseChannelCallback: NSObject, LndmobileRecvStreamProtocol {
     
     var resolve: RCTPromiseResolveBlock
     
