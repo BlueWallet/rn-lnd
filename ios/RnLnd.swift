@@ -96,7 +96,7 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func sendToRouteV2(paymentHashHex: String, paymentAddrHex: String, queryRoutesJsonString: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) -> Void {
+    func sendToRouteV2(_ paymentHashHex: String, paymentAddrHex: String, queryRoutesJsonString: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) -> Void {
         print("ReactNativeLND", "sendRouteV2 queryRoutesJsonString = \(queryRoutesJsonString)");
         do {
             if let data = queryRoutesJsonString.data(using: .utf8), let jsonArray = try JSONSerialization.jsonObject(with: data, options : .allowFragments) as? Dictionary<String,Any>

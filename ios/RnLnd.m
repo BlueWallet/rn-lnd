@@ -17,6 +17,7 @@ RCT_EXTERN_METHOD(walletBalance:(RCTPromiseResolveBlock)resolve reject:(RCTPromi
 RCT_EXTERN_METHOD(channelBalance:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(sendPaymentSync:(NSString *)paymentRequest amtSat:(nonnull NSNumber)amtSat resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(sendToRouteSync:(NSString *)paymentHashHex resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(sendToRouteV2:(NSString *)paymentHashHex paymentAddrHex:(NSString *)paymentAddrHex queryRoutesJsonString:(NSString *)queryRoutesJsonString resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(genSeed:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(addInvoice:(nonnull NSNumber)sat memo:(NSString *)memo expiry:(nonnull NSNumber)expiry resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(closeChannel:(NSString *)deliveryAddress fundingTxidHex:(NSString *)fundingTxidHex outputIndex:(nonnull NSNumber)outputIndex force:(BOOL)force resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject)

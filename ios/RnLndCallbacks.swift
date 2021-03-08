@@ -76,7 +76,7 @@ class GenSeedCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "GenSeedCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_GenSeedResponse(serializedData: p0) else {
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_GenSeedResponse(serializedData: p0Unwrapped) else {
             return resolve(false)
         }
         resolve(response.cipherSeedMnemonic.joined(separator: " "))
@@ -98,7 +98,7 @@ class InitWalletCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "InitWalletCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_InitWalletResponse(serializedData: p0), let responseJSON = try? response.jsonString() else {
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_InitWalletResponse(serializedData: p0Unwrapped), let responseJSON = try? response.jsonString() else {
             return resolve(false)
         }
         print("ReactNativeLND resp: \(responseJSON)")
@@ -121,7 +121,7 @@ class SendToRouteCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "SendToRouteCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_HTLCAttempt(serializedData: p0), let jsonResponse = try? response.jsonString() else {    return resolve(false)
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_HTLCAttempt(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else {    return resolve(false)
         }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
@@ -143,7 +143,8 @@ class GetInfoCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "GetInfoCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_GetInfoResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else {     return resolve(false)
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_GetInfoResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else {
+            return resolve(false)
         }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
@@ -165,7 +166,7 @@ class GetTransactionsCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "GetTransactionsCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_TransactionDetails(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false)
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_TransactionDetails(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false)
             
         }
         print("ReactNativeLND resp: \(jsonResponse)")
@@ -188,7 +189,7 @@ class PendingChannelsCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "PendingChannelsCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_PendingChannelsResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else {
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_PendingChannelsResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else {
             return resolve(false)
         }
         print("ReactNativeLND resp: \(jsonResponse)")
@@ -211,7 +212,7 @@ class ListChannelsCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "ListChannelsCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_ListChannelsResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else {
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_ListChannelsResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else {
             return resolve(false)
         }
         print("ReactNativeLND resp: \(jsonResponse)")
@@ -234,7 +235,7 @@ class ChannelBalanceCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "ChannelBalanceCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_ChannelBalanceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_ChannelBalanceResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -254,7 +255,7 @@ class ListPeersCallback: NSObject, LndmobileCallbackProtocol {
     }
     
     func onResponse(_ p0: Data?) {
-        guard let p0 = p0, let response = try? Lnrpc_ListPeersResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_ListPeersResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND", "ListPeersCallback ok")
         print("ReactNativeLND ListPeersCallback resp: \(jsonResponse)")
         resolve(jsonResponse)
@@ -276,7 +277,10 @@ class WalletBalanceCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "WalletBalanceCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_WalletBalanceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_WalletBalanceResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else {
+            print("ReactNativeLND NO JSON resp: \(p0.debugDescription)")
+            return resolve(false)
+        }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -297,7 +301,7 @@ class ListPaymentsCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "ListPaymentsCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_ListPaymentsResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_ListPaymentsResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -318,7 +322,7 @@ class SendCoinsCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "SendCoinsCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_SendCoinsResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_SendCoinsResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -339,7 +343,7 @@ class ListInvoicesCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "ListInvoicesCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_ListInvoiceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_ListInvoiceResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -360,7 +364,7 @@ class QueryRoutesCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "QueryRoutesCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_QueryRoutesResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_QueryRoutesResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -381,7 +385,7 @@ class DecodePayReqCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "DecodePayReqCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_PayReq(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_PayReq(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -404,7 +408,7 @@ class AddInvoiceCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "AddInvoiceCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_AddInvoiceResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_AddInvoiceResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -425,7 +429,7 @@ class SendPaymentSyncCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "SendPaymentSyncCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_SendResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false)  }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_SendResponse(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false)  }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -466,7 +470,7 @@ class FundingStateStepCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "FundingStateStepCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_FundingStateStepResp(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(true) }
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_FundingStateStepResp(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(true) }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -483,7 +487,7 @@ class OpenChannelRecvStream: NSObject, LndmobileRecvStreamProtocol {
     
     func onResponse(_ p0: Data?) {
         
-        guard let p0 = p0, let response = try? Lnrpc_OpenStatusUpdate(serializedData: p0), let jsonResponse = try? response.jsonString() else {
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_OpenStatusUpdate(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else {
             return resolve(false)
         }
         resolve(jsonResponse)
@@ -514,7 +518,7 @@ class CloseChannelCallback: NSObject, LndmobileRecvStreamProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "CloseChannelRecvStream ok")
-        guard let p0 = p0, let response = try? Lnrpc_CloseStatusUpdate(serializedData: p0), let jsonResponse = try? response.jsonString() else {  return resolve(false)
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_CloseStatusUpdate(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else {  return resolve(false)
         }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
