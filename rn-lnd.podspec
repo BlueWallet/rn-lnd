@@ -19,6 +19,6 @@ Pod::Spec.new do |s|
 
   s.dependency "React-Core"
   s.dependency "SwiftProtobuf"
-  s.vendored_frameworks = 'ios/Lndmobile.framework'
+  s.vendored_framework = "ios/Lndmobile.xcframework"	
 
 end
