@@ -144,7 +144,7 @@ class RnLnd: NSObject {
                         }
                         if (!paymentAddrHex.isEmpty && hops.count - 1 == index) {
                             var mppRecord = Lnrpc_MPPRecord()
-                            if let paymentAddrData = paymentAddrHex.data(using: .utf8) {
+                            if let paymentAddrData: Data = stringToBytesToData(string: paymentAddrHex) {
                                 mppRecord.paymentAddr = paymentAddrData
                             }
                             if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
