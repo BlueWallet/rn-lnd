@@ -16,7 +16,7 @@ class StartCallback: NSObject, LndmobileCallbackProtocol {
     }
     
     func onError(_ p0: Error?) {
-        print("ReactNativeLND", "start callback onError");
+        print("ReactNativeLND", "StartCallback onError");
         resolve(false)
     }
     
@@ -254,8 +254,8 @@ class ListPeersCallback: NSObject, LndmobileCallbackProtocol {
     }
     
     func onResponse(_ p0: Data?) {
+        guard let p0 = p0, let response = try? Lnrpc_ListPeersResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
         print("ReactNativeLND", "ListPeersCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_ListPeersResponse(serializedData: p0), let jsonResponse = try? response.jsonString() else {   return resolve(false) }
         print("ReactNativeLND ListPeersCallback resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
@@ -440,7 +440,7 @@ class EmptyResponseBooleanCallback: NSObject, LndmobileCallbackProtocol {
     }
     
     func onError(_ p0: Error?) {
-        print("ReactNativeLND", "callback onError");
+        print("ReactNativeLND", "EmptyResponseBooleanCallback onError");
         resolve(false)
     }
     
@@ -466,7 +466,7 @@ class FundingStateStepCallback: NSObject, LndmobileCallbackProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "FundingStateStepCallback ok")
-        guard let p0 = p0, let response = try? Lnrpc_FundingStateStepResp(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(false) }
+        guard let p0 = p0, let response = try? Lnrpc_FundingStateStepResp(serializedData: p0), let jsonResponse = try? response.jsonString() else { return resolve(true) }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
     }

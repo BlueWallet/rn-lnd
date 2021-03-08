@@ -4,6 +4,50 @@ import Lndmobile
 
 class RnLnd: NSObject {
     
+    private func stringToBytes(_ string: String) -> [UInt8]? {
+        let length = string.count
+        if length & 1 != 0 {
+            return nil
+        }
+        var bytes = [UInt8]()
+        bytes.reserveCapacity(length/2)
+        var index = string.startIndex
+        for _ in 0..<length/2 {
+            let nextIndex = string.index(index, offsetBy: 2)
+            if let b = UInt8(string[index..<nextIndex], radix: 16) {
+                bytes.append(b)
+            } else {
+                return nil
+            }
+            index = nextIndex
+        }
+        return bytes
+    }
+    
+    private func base64BytesStringToData(string: String) -> Data? {
+        return Data(base64Encoded: string)
+    }
+    
+    private func stringToBytesToData(string: String) -> Data? {
+        guard let bytes = stringToBytes(string) else {
+            return nil;
+        }
+        return Data(bytes: bytes)
+    }
+    
+    private func stringToBytesToDataBase64Encoded(string: String) -> Data? {
+        guard let bytes = stringToBytes(string) else {
+            return nil;
+        }
+        return Data(bytes: bytes).base64EncodedData()
+    }
+    
+    private func generateRandomBytes() -> String? {
+        let bytes = [UInt8](repeating: 0, count: 32).map { _ in arc4random() }
+        let data = Data(bytes: bytes, count: 32)
+        return data.base64EncodedString()
+    }
+    
     func getLNDDocumentsDirectory() -> URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDirectory = paths[0]
@@ -226,8 +270,8 @@ class RnLnd: NSObject {
     @objc
     func fundingStateStepVerify(_ chanIdHex: String, psbtHex: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         print("ReactNativeLND", "fundingStateStepVerify");
-        
-        guard let chanIdHexData = chanIdHex.data(using: .utf8), let psbtData = psbtHex.data(using: .utf8) else {
+        print(chanIdHex)
+        guard let chanIdHexData = stringToBytesToData(string: chanIdHex), let psbtData = stringToBytesToData(string: psbtHex) else {
             return resolve(false)
         }
         
@@ -248,7 +292,7 @@ class RnLnd: NSObject {
     func fundingStateStepFinalize(_ chanIdHex: String, psbtHex: String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         print("ReactNativeLND", "fundingStateStepFinalize");
         
-        guard let chanIdHexData = chanIdHex.data(using: .utf8), let psbtData = psbtHex.data(using: .utf8) else {
+        guard let chanIdHexData = stringToBytesToData(string: chanIdHex), let psbtData = stringToBytesToData(string: psbtHex) else {
             return resolve(false)
         }
         
@@ -268,7 +312,7 @@ class RnLnd: NSObject {
     func fundingStateStepCancel(_ chanIdHex: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         print("ReactNativeLND", "fundingStateStep");
         
-        guard let chanIdHexData = chanIdHex.data(using: .utf8) else {
+        guard let chanIdHexData = stringToBytesToData(string: chanIdHex) else {
             return resolve(false)
 
         }
@@ -284,42 +328,22 @@ class RnLnd: NSObject {
         LndmobileFundingStateStep(serializedData, FundingStateStepCallback(resolve: resolve))
     }
     
-    func stringToBytes(_ string: String) -> [UInt8]? {
-        let length = string.count
-        if length & 1 != 0 {
-            return nil
-        }
-        var bytes = [UInt8]()
-        bytes.reserveCapacity(length/2)
-        var index = string.startIndex
-        for _ in 0..<length/2 {
-            let nextIndex = string.index(index, offsetBy: 2)
-            if let b = UInt8(string[index..<nextIndex], radix: 16) {
-                bytes.append(b)
-            } else {
-                return nil
-            }
-            index = nextIndex
-        }
-        return bytes
-    }
-    
     @objc
     func openChannelPsbt(_ pubkeyHex: String, amountSats: NSNumber, privateChannel: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         print("ReactNativeLND", "openChannelPsbt");
         
-        guard let nodePubKey = stringToBytes(pubkeyHex) else { return resolve(false) }
+        
+        guard let nodePubKey = stringToBytesToData(string: pubkeyHex), let randomBytes = generateRandomBytes(), let pendingChanIDData =  base64BytesStringToData(string: randomBytes) else { return resolve(false) }
+        
+   
 
         var psbtShim = Lnrpc_PsbtShim()
-        let bytes = [UInt32](repeating: 0, count: 32).map { _ in arc4random() }
-        let data = Data(bytes: bytes, count: 32)
-        psbtShim.pendingChanID = data
-        
+        psbtShim.pendingChanID = pendingChanIDData
         var fundingShim = Lnrpc_FundingShim()
         fundingShim.psbtShim = psbtShim
         var request = Lnrpc_OpenChannelRequest()
         request.localFundingAmount = amountSats.int64Value
-        request.nodePubkey = Data(nodePubKey)
+        request.nodePubkey = nodePubKey
         request.fundingShim = fundingShim
         request.private = privateChannel
         guard let serializedData = try? request.serializedData() else {
