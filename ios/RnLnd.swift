@@ -32,14 +32,14 @@ class RnLnd: NSObject {
         guard let bytes = stringToBytes(string) else {
             return nil;
         }
-        return Data(bytes)
+        return Data(bytes: bytes)
     }
     
     private func stringToBytesToDataBase64Encoded(string: String) -> Data? {
         guard let bytes = stringToBytes(string) else {
             return nil;
         }
-        return Data(bytes).base64EncodedData()
+        return Data(bytes: bytes).base64EncodedData()
     }
     
     private func generateRandomBytes() -> String? {
@@ -144,7 +144,7 @@ class RnLnd: NSObject {
                         }
                         if (!paymentAddrHex.isEmpty && hops.count - 1 == index) {
                             var mppRecord = Lnrpc_MPPRecord()
-                            if let paymentAddrData = paymentAddrHex.data(using: .utf8) {
+                            if let paymentAddrData: Data = stringToBytesToData(string: paymentAddrHex) {
                                 mppRecord.paymentAddr = paymentAddrData
                             }
                             if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
@@ -162,9 +162,11 @@ class RnLnd: NSObject {
                     request.paymentHash = paymentHashHexData
                     request.route = routeTemp
                 }
-                guard let serializedData: Data = try? request.serializedData() else { return resolve(false) }
-                let callback: SendToRouteCallback = SendToRouteCallback(resolve: resolve)
-                LndmobileRouterSendToRouteV2(serializedData, callback)
+                guard let serializedData = try? request.serializedData() else { return }
+                let callback = SendToRouteCallback(resolve: resolve)
+                
+                var error: NSError?
+                LndmobileSendToRoute(SendToRouteCallback(resolve: resolve), &error)
                 
             } else {
                 print("bad json")
@@ -182,9 +184,7 @@ class RnLnd: NSObject {
         if !FileManager.default.fileExists(atPath: path.path) {
             copyFiles()
         }
-        let callback = StartCallback(resolve: resolve)
-        let callback2 = StartCallback2()
-        LndmobileStart("\(lndArguments) --lnddir=\(getLNDDocumentsDirectory().path)", callback,callback2)
+        LndmobileStart("\(lndArguments) --lnddir=\(getLNDDocumentsDirectory().path)", StartCallback(resolve: resolve), StartCallback2())
     }
     
     @objc
@@ -200,6 +200,7 @@ class RnLnd: NSObject {
         }
         
         let callback = UnlockWalletCallback(resolve: resolve)
+
         LndmobileUnlockWallet(serializedData, callback)
     }
     
@@ -526,11 +527,10 @@ class RnLnd: NSObject {
     func stopDaemon(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) -> Void {
         print("ReactNativeLND", "stopDaemon");
         let request = Lnrpc_StopRequest()
-        guard let serializedData: Data = try? request.serializedData() else {
+        guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        let callback = EmptyResponseBooleanCallback(resolve: resolve)
-        LndmobileStopDaemon(serializedData, callback)
+        LndmobileStopDaemon(serializedData, EmptyResponseBooleanCallback(resolve: resolve))
     }
     
     @objc
