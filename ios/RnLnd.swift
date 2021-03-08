@@ -158,7 +158,7 @@ class RnLnd: NSObject {
                 routeTemp.hops = hopsArray
                 
                 var request = Routerrpc_SendToRouteRequest()
-                if let paymentHashHexData = paymentHashHex.data(using: .utf8) {
+                if let paymentHashHexData = stringToBytesToData(string: paymentHashHex) {
                     request.paymentHash = paymentHashHexData
                     request.route = routeTemp
                 }
