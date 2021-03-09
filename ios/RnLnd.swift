@@ -116,11 +116,10 @@ class RnLnd: NSObject {
                     routeTemp.totalTimeLock = totalTimeLockInt
                 }
                 
-                var hopsArray = [Lnrpc_Hop]()
                 if let hops = hopsJSON {
-                    for (index, hop) in hops.enumerated() {
+                    for index in (1...hops.count) {
+                        let hop = hops[index - 1]
                         var hopTemp = Lnrpc_Hop()
-                        
                         if let chanID = hop["chan_id"] as? String, let chanIDInt = UInt64(chanID) {
                             hopTemp.chanID = chanIDInt
                         }
@@ -140,9 +139,10 @@ class RnLnd: NSObject {
                             hopTemp.pubKey = pubKey
                         }
                         if let tlvPayLoad = hop["tlv_payload"] as? Bool {
+                            print(tlvPayLoad)
                             hopTemp.tlvPayload = tlvPayLoad
                         }
-                        if (!paymentAddrHex.isEmpty && hops.count - 1 == index) {
+                        if (!paymentAddrHex.isEmpty && index == hops.count) {
                             var mppRecord = Lnrpc_MPPRecord()
                             if let paymentAddrData: Data = stringToBytesToData(string: paymentAddrHex) {
                                 mppRecord.paymentAddr = paymentAddrData
@@ -152,10 +152,11 @@ class RnLnd: NSObject {
                             }
                             hopTemp.mppRecord = mppRecord
                         }
-                        hopsArray.append(hopTemp)
+                        print("Hop Dictionary: \(hop)")
+                        print("HopTemp Object: \(hopTemp.debugDescription)")
+                        routeTemp.hops.append(hopTemp)
                     }
                 }
-                routeTemp.hops = hopsArray
                 
                 var request = Routerrpc_SendToRouteRequest()
                 if let paymentHashHexData = stringToBytesToData(string: paymentHashHex) {
