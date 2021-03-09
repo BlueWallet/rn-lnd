@@ -99,15 +99,16 @@ class RnLnd: NSObject {
     func sendToRouteV2(_ paymentHashHex: String, paymentAddrHex: String, queryRoutesJsonString: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) -> Void {
         print("ReactNativeLND", "sendRouteV2 queryRoutesJsonString = \(queryRoutesJsonString)");
         do {
-            if let data = queryRoutesJsonString.data(using: .utf8), let jsonArray = try JSONSerialization.jsonObject(with: data, options : .allowFragments) as? Dictionary<String,Any>
+            if let data = queryRoutesJsonString.data(using: .utf8), let jsonArray = try JSONSerialization.jsonObject(with: data, options : .allowFragments) as? [String: AnyObject]
             {
+                
                print(jsonArray) // use the json here
                 let routesJSON = jsonArray["routes"] as? [Dictionary<String,Any>]
                 let routeJSON = routesJSON?.first
                 let hopsJSON = routeJSON?["hops"] as? [Dictionary<String,Any>]
                 var routeTemp = Lnrpc_Route()
                 if let totalAmountMSat = routeJSON?["total_amt_msat"] as? String, let totalAmountMSatInt = Int64(totalAmountMSat) {
-                    routeTemp.totalAmt = totalAmountMSatInt
+                    routeTemp.totalAmtMsat = totalAmountMSatInt
                 }
                 if let totalFeesMSat = routeJSON?["total_fees_msat"] as? String, let totalFeesMSatInt = Int64(totalFeesMSat) {
                     routeTemp.totalFeesMsat = totalFeesMSatInt
@@ -129,6 +130,8 @@ class RnLnd: NSObject {
                         if let expiry = hop["expiry"] as? String, let expiryInt = UInt32(expiry) {
                             hopTemp.expiry = expiryInt
                         }
+                        print(type(of: hop["amt_to_forward_msat"]))
+                        
                         if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
                             hopTemp.amtToForwardMsat = forwardMSatInt
                         }
