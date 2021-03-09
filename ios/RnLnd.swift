@@ -127,10 +127,12 @@ class RnLnd: NSObject {
                         if let chanCapacity = hop["chan_capacity"] as? String, let chanCapacityInt = Int64(chanCapacity) {
                             hopTemp.chanCapacity = chanCapacityInt
                         }
-                        if let expiry = hop["expiry"] as? String, let expiryInt = UInt32(expiry) {
+                       // print(hop["expiry"])
+                        if let expiry = hop["expiry"] as? Int {
+                            hopTemp.expiry = UInt32(expiry)
+                        } else if let expiry = hop["expiry"] as? String, let expiryInt = UInt32(expiry) {
                             hopTemp.expiry = expiryInt
                         }
-                        print(type(of: hop["amt_to_forward_msat"]))
                         
                         if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
                             hopTemp.amtToForwardMsat = forwardMSatInt
@@ -145,7 +147,7 @@ class RnLnd: NSObject {
                             print(tlvPayLoad)
                             hopTemp.tlvPayload = tlvPayLoad
                         }
-                        if (!paymentAddrHex.isEmpty && index == hops.count) {
+                        if (!paymentAddrHex.isEmpty && index == hopsJSON?.count) {
                             var mppRecord = Lnrpc_MPPRecord()
                             if let paymentAddrData: Data = stringToBytesToData(string: paymentAddrHex) {
                                 mppRecord.paymentAddr = paymentAddrData
@@ -164,8 +166,8 @@ class RnLnd: NSObject {
                 var request = Routerrpc_SendToRouteRequest()
                 if let paymentHashHexData = stringToBytesToData(string: paymentHashHex) {
                     request.paymentHash = paymentHashHexData
-                    request.route = routeTemp
                 }
+                request.route = routeTemp
                 guard let serializedData: Data = try? request.serializedData() else { return resolve(false) }
                 let callback: SendToRouteCallback = SendToRouteCallback(resolve: resolve)
                 LndmobileRouterSendToRouteV2(serializedData, callback)

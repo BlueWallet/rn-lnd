@@ -488,7 +488,7 @@ class OpenChannelRecvStream: NSObject, LndmobileRecvStreamProtocol {
     func onResponse(_ p0: Data?) {
         
         guard let p0Unwrapped = p0, let response = try? Lnrpc_OpenStatusUpdate(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else {
-            return resolve(false)
+            return resolve(true)
         }
         resolve(jsonResponse)
     }
@@ -518,7 +518,7 @@ class CloseChannelCallback: NSObject, LndmobileRecvStreamProtocol {
     
     func onResponse(_ p0: Data?) {
         print("ReactNativeLND", "CloseChannelRecvStream ok")
-        guard let p0Unwrapped = p0, let response = try? Lnrpc_CloseStatusUpdate(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else {  return resolve(false)
+        guard let p0Unwrapped = p0, let response = try? Lnrpc_CloseStatusUpdate(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else {  return resolve(true)
         }
         print("ReactNativeLND resp: \(jsonResponse)")
         resolve(jsonResponse)
