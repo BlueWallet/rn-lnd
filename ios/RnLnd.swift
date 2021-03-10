@@ -57,15 +57,16 @@ class RnLnd: NSObject {
     @objc
     func getLndDir(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         let path = getLNDDocumentsDirectory().absoluteString
-        return resolve(path)
+        resolve(path)
     }
     
     @objc func wipeLndDir(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         do {
             try FileManager.default.removeItem(at: getLNDDocumentsDirectory())
-            return resolve(true)
+            resolve(true)
         } catch {
-            return resolve(false)
+            print("wipeLndDir error: \(error.localizedDescription)")
+            resolve(false)
         }
     }
     
@@ -115,11 +116,15 @@ class RnLnd: NSObject {
                 }
                 if let totalTimeLock = routeJSON?["total_time_lock"] as? String, let totalTimeLockInt = UInt32(totalTimeLock) {
                     routeTemp.totalTimeLock = totalTimeLockInt
+                } else if let totalTimeLock = routeJSON?["total_time_lock"] as? Int  {
+                    routeTemp.totalTimeLock = UInt32(totalTimeLock)
                 }
                 
                 if let hops = hopsJSON {
                     for index in (1...hops.count) {
                         let hop = hops[index - 1]
+                        print("ReactNativeLND", "chanId = \(String(describing: hop["chan_id"])) \(String(describing: hop["chan_id"])) \(String(describing: hop["chan_id"]))")
+
                         var hopTemp = Lnrpc_Hop()
                         if let chanID = hop["chan_id"] as? String, let chanIDInt = UInt64(chanID) {
                             hopTemp.chanID = chanIDInt
@@ -127,12 +132,12 @@ class RnLnd: NSObject {
                         if let chanCapacity = hop["chan_capacity"] as? String, let chanCapacityInt = Int64(chanCapacity) {
                             hopTemp.chanCapacity = chanCapacityInt
                         }
-                       // print(hop["expiry"])
                         if let expiry = hop["expiry"] as? Int {
                             hopTemp.expiry = UInt32(expiry)
                         } else if let expiry = hop["expiry"] as? String, let expiryInt = UInt32(expiry) {
                             hopTemp.expiry = expiryInt
                         }
+                        
                         
                         if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
                             hopTemp.amtToForwardMsat = forwardMSatInt
@@ -151,6 +156,7 @@ class RnLnd: NSObject {
                             var mppRecord = Lnrpc_MPPRecord()
                             if let paymentAddrData: Data = stringToBytesToData(string: paymentAddrHex) {
                                 mppRecord.paymentAddr = paymentAddrData
+                            
                             }
                             if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
                                 mppRecord.totalAmtMsat = forwardMSatInt
@@ -166,6 +172,7 @@ class RnLnd: NSObject {
                 var request = Routerrpc_SendToRouteRequest()
                 if let paymentHashHexData = stringToBytesToData(string: paymentHashHex) {
                     request.paymentHash = paymentHashHexData
+                    
                 }
                 request.route = routeTemp
                 guard let serializedData: Data = try? request.serializedData() else { return resolve(false) }
@@ -420,9 +427,10 @@ class RnLnd: NSObject {
     func getLogs(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         let path = getLNDDocumentsDirectory().appendingPathComponent("logs/bitcoin/mainnet/lnd.log")
         guard let log = FileManager.default.contents(atPath: path.path), let logString = String(data: log, encoding: .utf8) else {
-            return resolve(false)
+            return resolve("Unable to find log at \(path.absoluteString)")
         }
-        resolve(logString)
+        print("getLogs resp: \(logString)")
+        resolve("\(logString)")
     }
     
     @objc

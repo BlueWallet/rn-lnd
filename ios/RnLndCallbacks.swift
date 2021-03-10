@@ -169,7 +169,7 @@ class GetTransactionsCallback: NSObject, LndmobileCallbackProtocol {
         guard let p0Unwrapped = p0, let response = try? Lnrpc_TransactionDetails(serializedData: p0Unwrapped), let jsonResponse = try? response.jsonString() else { return resolve(false)
             
         }
-        print("ReactNativeLND resp: \(jsonResponse)")
+        print("ReactNativeLND GetTransactionsCallback resp: \(jsonResponse)")
         resolve(jsonResponse)
     }
 }
