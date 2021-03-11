@@ -35,13 +35,6 @@ class RnLnd: NSObject {
         return Data(bytes)
     }
     
-    private func stringToBytesToDataBase64Encoded(string: String) -> Data? {
-        guard let bytes = stringToBytes(string) else {
-            return nil;
-        }
-        return Data(bytes).base64EncodedData()
-    }
-    
     private func generateRandomBytes() -> String? {
         let bytes = [UInt8](repeating: 0, count: 32).map { _ in arc4random() }
         let data = Data(bytes: bytes, count: 32)
@@ -63,6 +56,7 @@ class RnLnd: NSObject {
     @objc func wipeLndDir(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         do {
             try FileManager.default.removeItem(at: getLNDDocumentsDirectory())
+            print("wipeLndDir success")
             resolve(true)
         } catch {
             print("wipeLndDir error: \(error.localizedDescription)")
@@ -72,7 +66,7 @@ class RnLnd: NSObject {
     
     func copyFiles() {
         let directory = getLNDDocumentsDirectory().appendingPathComponent( "data/chain/bitcoin/mainnet")
-        print(directory)
+        print("RNLND copy files directory: \(directory)")
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
         } catch {
@@ -89,8 +83,9 @@ class RnLnd: NSObject {
             }
             do {
                 try FileManager.default.copyItem(at: filePath, to: URL(string: "\(directory)\(file).\(filesToCopyExtension[index])")!)
+                print("RNLND copy \(file) to \(String(describing: URL(string: "\(directory)\(file).\(filesToCopyExtension[index])"))) success")
             } catch {
-                print("copy \(file) failed")
+                print("RNLND copy \(file) to \(String(describing: URL(string: "\(directory)\(file).\(filesToCopyExtension[index])"))) failed")
                 print(error.localizedDescription)
             }
         }
