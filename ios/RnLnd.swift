@@ -35,6 +35,13 @@ class RnLnd: NSObject {
         return Data(bytes)
     }
     
+    private func stringToBytesToDataBase64Encoded(string: String) -> Data? {
+        guard let bytes = stringToBytes(string) else {
+            return nil;
+        }
+        return Data(bytes).base64EncodedData()
+    }
+    
     private func generateRandomBytes() -> String? {
         let bytes = [UInt8](repeating: 0, count: 32).map { _ in arc4random() }
         let data = Data(bytes: bytes, count: 32)
@@ -56,7 +63,6 @@ class RnLnd: NSObject {
     @objc func wipeLndDir(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         do {
             try FileManager.default.removeItem(at: getLNDDocumentsDirectory())
-            print("wipeLndDir success")
             resolve(true)
         } catch {
             print("wipeLndDir error: \(error.localizedDescription)")
@@ -66,7 +72,7 @@ class RnLnd: NSObject {
     
     func copyFiles() {
         let directory = getLNDDocumentsDirectory().appendingPathComponent( "data/chain/bitcoin/mainnet")
-        print("RNLND copy files directory: \(directory)")
+        print(directory)
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
         } catch {
@@ -83,9 +89,8 @@ class RnLnd: NSObject {
             }
             do {
                 try FileManager.default.copyItem(at: filePath, to: URL(string: "\(directory)\(file).\(filesToCopyExtension[index])")!)
-                print("RNLND copy \(file) to \(String(describing: URL(string: "\(directory)\(file).\(filesToCopyExtension[index])"))) success")
             } catch {
-                print("RNLND copy \(file) to \(String(describing: URL(string: "\(directory)\(file).\(filesToCopyExtension[index])"))) failed")
+                print("copy \(file) failed")
                 print(error.localizedDescription)
             }
         }
@@ -105,9 +110,13 @@ class RnLnd: NSObject {
                 var routeTemp = Lnrpc_Route()
                 if let totalAmountMSat = routeJSON?["total_amt_msat"] as? String, let totalAmountMSatInt = Int64(totalAmountMSat) {
                     routeTemp.totalAmtMsat = totalAmountMSatInt
+                } else if let totalAmountMSat = routeJSON?["total_amt_msat"] as? Int  {
+                    routeTemp.totalAmtMsat = Int64(totalAmountMSat)
                 }
                 if let totalFeesMSat = routeJSON?["total_fees_msat"] as? String, let totalFeesMSatInt = Int64(totalFeesMSat) {
                     routeTemp.totalFeesMsat = totalFeesMSatInt
+                } else if let totalFeesMSat = routeJSON?["total_fees_msat"] as? Int  {
+                    routeTemp.totalFeesMsat = Int64(totalFeesMSat)
                 }
                 if let totalTimeLock = routeJSON?["total_time_lock"] as? String, let totalTimeLockInt = UInt32(totalTimeLock) {
                     routeTemp.totalTimeLock = totalTimeLockInt
@@ -123,9 +132,13 @@ class RnLnd: NSObject {
                         var hopTemp = Lnrpc_Hop()
                         if let chanID = hop["chan_id"] as? String, let chanIDInt = UInt64(chanID) {
                             hopTemp.chanID = chanIDInt
+                        } else if let chanID = hop["chan_id"] as? Int {
+                            hopTemp.chanID = UInt64(chanID)
                         }
                         if let chanCapacity = hop["chan_capacity"] as? String, let chanCapacityInt = Int64(chanCapacity) {
                             hopTemp.chanCapacity = chanCapacityInt
+                        } else if let chanCapacity = hop["chan_capacity"] as? Int {
+                            hopTemp.chanCapacity = Int64(chanCapacity)
                         }
                         if let expiry = hop["expiry"] as? Int {
                             hopTemp.expiry = UInt32(expiry)
@@ -136,15 +149,20 @@ class RnLnd: NSObject {
                         
                         if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
                             hopTemp.amtToForwardMsat = forwardMSatInt
+                        } else if let forwardMSat = hop["amt_to_forward_msat"] as? Int {
+                            hopTemp.amtToForwardMsat = Int64(forwardMSat)
                         }
                         if let feeMSat = hop["fee_msat"] as? String, let feeMSatInt = Int64(feeMSat) {
                             hopTemp.feeMsat = feeMSatInt
+                        } else if let feeMSat = hop["fee_msat"] as? Int {
+                            hopTemp.feeMsat = Int64(feeMSat)
                         }
                         if let pubKey = hop["pub_key"] as? String {
                             hopTemp.pubKey = pubKey
+                        } else if let pubKey = hop["pub_key"] as? Int {
+                            hopTemp.pubKey = String(pubKey)
                         }
                         if let tlvPayLoad = hop["tlv_payload"] as? Bool {
-                            print(tlvPayLoad)
                             hopTemp.tlvPayload = tlvPayLoad
                         }
                         if (!paymentAddrHex.isEmpty && index == hopsJSON?.count) {
@@ -155,6 +173,8 @@ class RnLnd: NSObject {
                             }
                             if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
                                 mppRecord.totalAmtMsat = forwardMSatInt
+                            } else if let forwardMSat = hop["amt_to_forward_msat"] as? Int {
+                                mppRecord.totalAmtMsat = Int64(forwardMSat)
                             }
                             hopTemp.mppRecord = mppRecord
                         }
@@ -421,11 +441,12 @@ class RnLnd: NSObject {
     @objc
     func getLogs(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
         let path = getLNDDocumentsDirectory().appendingPathComponent("logs/bitcoin/mainnet/lnd.log")
-        guard let log = FileManager.default.contents(atPath: path.path), let logString = String(data: log, encoding: .utf8) else {
-            return resolve("Unable to find log at \(path.absoluteString)")
+        guard let logString = try? String(contentsOf: path) else {
+            print("Unable to find log at \(path.absoluteString)")
+            return resolve(false)
         }
-        print("getLogs resp: \(logString)")
-        resolve("\(logString)")
+        let logStringComponents = logString.components(separatedBy: .newlines).suffix(100)
+        resolve(logStringComponents.joined())
     }
     
     @objc
