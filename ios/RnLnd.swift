@@ -51,6 +51,7 @@ class RnLnd: NSObject {
     func getLNDDocumentsDirectory() -> URL {
         let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         let documentsDirectory = paths[0]
+        print("getLNDDocumentsDirectory \(documentsDirectory)")
         return documentsDirectory.appendingPathComponent(".lnd")
     }
     
@@ -71,7 +72,7 @@ class RnLnd: NSObject {
     }
     
     func copyFiles() {
-        let directory = getLNDDocumentsDirectory().appendingPathComponent( "data/chain/bitcoin/mainnet")
+        let directory = getLNDDocumentsDirectory().appendingPathComponent( "data/chain/bitcoin")
         print(directory)
         do {
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: nil)
@@ -80,7 +81,7 @@ class RnLnd: NSObject {
             print(error.localizedDescription)
             return
         }
-        let filesToCopy = ["block_headers", "neutrino", "peers", "reg_filter_headers"]
+        let filesToCopy = ["mainnetblock_headers", "mainnetneutrino", "mainnetpeers", "mainnetreg_filter_headers"]
         let filesToCopyExtension = ["bin", "db", "json", "bin"]
         for (index, file) in filesToCopy.enumerated() {
             guard let filePath = Bundle.main.url(forResource: file, withExtension: filesToCopyExtension[index]) else {
@@ -88,6 +89,7 @@ class RnLnd: NSObject {
                 return
             }
             do {
+                print("file path: \(filePath)")
                 try FileManager.default.copyItem(at: filePath, to: URL(string: "\(directory)\(file).\(filesToCopyExtension[index])")!)
             } catch {
                 print("copy \(file) failed")
@@ -206,13 +208,11 @@ class RnLnd: NSObject {
     @objc
     func start(_ lndArguments: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) -> Void {
         print("ReactNativeLND", "start");
-        let path = getLNDDocumentsDirectory().appendingPathComponent( "data/chain/bitcoin/mainnet/block_headers.bin")
+        let path = getLNDDocumentsDirectory().appendingPathComponent( "data/chain/bitcoin/mainnetblock_headers.bin")
         if !FileManager.default.fileExists(atPath: path.path) {
             copyFiles()
         }
-        let callback = StartCallback(resolve: resolve)
-        let callback2 = StartCallback2()
-        LndmobileStart("\(lndArguments) --lnddir=\(getLNDDocumentsDirectory().path)", callback,callback2)
+        LndmobileStart("\(lndArguments) --lnddir=\(getLNDDocumentsDirectory().path)", StartCallback(resolve: resolve), StartCallback2())
     }
     
     @objc
@@ -220,21 +220,21 @@ class RnLnd: NSObject {
         print("ReactNativeLND", "unlocking wallet with password -->" + password + "<--");
         var unlockRequest = Lnrpc_UnlockWalletRequest()
         guard let passwordData = password.data(using: .utf8) else {
+            print("ReactNativeLND", "ERROR unlocking wallet  with password -->" + password + "<--");
             return resolve(false)
         }
         unlockRequest.walletPassword = passwordData
         guard let serializedData = try? unlockRequest.serializedData() else {
             return resolve(false)
         }
-        
-        let callback = UnlockWalletCallback(resolve: resolve)
-        LndmobileUnlockWallet(serializedData, callback)
+        LndmobileUnlockWallet(serializedData, UnlockWalletCallback(resolve: resolve))
     }
     
     @objc
     func initWallet(_ password: String, mnemonics: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) -> Void {
         print("ReactNativeLND", "initWallet");
         guard let passwordData = password.data(using: .utf8) else {
+            print("ReactNativeLND", "ERROR initWallet");
             return resolve(false)
         }
         let cipherSeed = mnemonics.components(separatedBy: " ")
@@ -246,9 +246,7 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        let callback = InitWalletCallback(resolve: resolve)
-        print(callback)
-        LndmobileInitWallet(serializedData, callback)
+        LndmobileInitWallet(serializedData, InitWalletCallback(resolve: resolve))
     }
     
     @objc
@@ -281,8 +279,7 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        let callback = ListChannelsCallback(resolve: resolve)
-        LndmobileListChannels(serializedData, callback)
+        LndmobileListChannels(serializedData, ListChannelsCallback(resolve: resolve))
     }
     
     @objc
@@ -301,6 +298,7 @@ class RnLnd: NSObject {
         print("ReactNativeLND", "fundingStateStepVerify");
         print(chanIdHex)
         guard let chanIdHexData = stringToBytesToData(string: chanIdHex), let psbtData = stringToBytesToData(string: psbtHex) else {
+            print("fundingStateStepVerify ERROR guard")
             return resolve(false)
         }
         
@@ -322,6 +320,7 @@ class RnLnd: NSObject {
         print("ReactNativeLND", "fundingStateStepFinalize");
         
         guard let chanIdHexData = stringToBytesToData(string: chanIdHex), let psbtData = stringToBytesToData(string: psbtHex) else {
+            print("fundingStateStepFinalize ERROR guard")
             return resolve(false)
         }
         
@@ -339,9 +338,10 @@ class RnLnd: NSObject {
     
     @objc
     func fundingStateStepCancel(_ chanIdHex: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
-        print("ReactNativeLND", "fundingStateStep");
+        print("ReactNativeLND", "fundingStateStepCancel");
         
         guard let chanIdHexData = stringToBytesToData(string: chanIdHex) else {
+            print("fundingStateStepCancel ERROR guard")
             return resolve(false)
 
         }
@@ -362,7 +362,9 @@ class RnLnd: NSObject {
         print("ReactNativeLND", "openChannelPsbt");
         
         
-        guard let nodePubKey = stringToBytesToData(string: pubkeyHex), let randomBytes = generateRandomBytes(), let pendingChanIDData =  base64BytesStringToData(string: randomBytes) else { return resolve(false) }
+        guard let nodePubKey = stringToBytesToData(string: pubkeyHex), let randomBytes = generateRandomBytes(), let pendingChanIDData =  base64BytesStringToData(string: randomBytes) else {
+            print("openChannelPsbt ERROR guard")
+            return resolve(false) }
         
    
 
@@ -378,9 +380,8 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        
-        let stream = OpenChannelRecvStream(resolve: resolve)
-        LndmobileOpenChannel(serializedData,stream)
+        let callback = OpenChannelRecvStream(resolve: resolve)
+        LndmobileOpenChannel(serializedData, callback)
     }
     
     @objc
@@ -468,8 +469,7 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        LndmobileGenSeed(serializedData
-                         , GenSeedCallback(resolve: resolve))
+        LndmobileGenSeed(serializedData, GenSeedCallback(resolve: resolve))
     }
     
     @objc
@@ -548,8 +548,8 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        
-        LndmobileCloseChannel(serializedData, CloseChannelCallback(resolve: resolve))
+        let callback = CloseChannelCallback(resolve: resolve)
+        LndmobileCloseChannel(serializedData, callback)
     }
     
     @objc
@@ -559,8 +559,7 @@ class RnLnd: NSObject {
         guard let serializedData: Data = try? request.serializedData() else {
             return resolve(false)
         }
-        let callback = EmptyResponseBooleanCallback(resolve: resolve)
-        LndmobileStopDaemon(serializedData, callback)
+        LndmobileStopDaemon(serializedData, EmptyResponseBooleanCallback(resolve: resolve))
     }
     
     @objc
