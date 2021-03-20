@@ -52,11 +52,7 @@ class UnlockWalletCallback: NSObject, LndmobileCallbackProtocol {
     }
     
     func onResponse(_ p0: Data?) {
-        print("ReactNativeLND", "UnlockWalletCallback ok")
-        guard let p0Data = p0, let response = try? Lnrpc_UnlockWalletResponse(serializedData: p0Data) else {
-            return resolve(false)
-        }
-        print("ReactNativeLND resp: \(response.textFormatString())")
+        print("ReactNativeLND UnlockWalletCallback resp: \(String(describing: p0?.debugDescription))")
         resolve(true)
     }
 }

@@ -227,8 +227,7 @@ class RnLnd: NSObject {
             return resolve(false)
         }
         
-        let callback = UnlockWalletCallback(resolve: resolve)
-        LndmobileUnlockWallet(serializedData, callback)
+        LndmobileUnlockWallet(serializedData, UnlockWalletCallback(resolve: resolve))
     }
     
     @objc
@@ -247,7 +246,6 @@ class RnLnd: NSObject {
             return resolve(false)
         }
         let callback = InitWalletCallback(resolve: resolve)
-        print(callback)
         LndmobileInitWallet(serializedData, callback)
     }
     
