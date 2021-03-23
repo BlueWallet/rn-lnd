@@ -97,10 +97,10 @@ class RnLndImplementation {
       '--bitcoin.active --bitcoin.mainnet --bitcoin.defaultchanconfs=1 --routing.assumechanvalid ' +
       '--protocol.wumbo-channels --rpclisten=127.0.0.1 --norest --nolisten ' +
       '--maxbackoff=5s --connectiontimeout=20s' + // --enable-upfront-shutdown
-      '--bitcoin.node=neutrino --neutrino.addpeer=btcd-mainnet.lightning.computer --neutrino.maxpeers=10 ' +
+      '--bitcoin.node=neutrino --neutrino.addpeer=btcd0.lightning.engineering --neutrino.maxpeers=20 ' +
       '--neutrino.assertfilterheader=660000:08312375fabc082b17fa8ee88443feb350c19a34bb7483f94f7478fa4ad33032 ' +
       '--neutrino.feeurl=https://nodes.lightning.computer/fees/v1/btc-fee-estimates.json  --numgraphsyncpeers=3 ' +
-      '--bitcoin.basefee=100000 --bitcoin.feerate=10000 ';
+      '--bitcoin.basefee=100000 --bitcoin.feerate=10000 --db.bolt.auto-compact --db.bolt.auto-compact-min-age=0 ';
 
     return Native.start(lndArguments || defaultArguments);
   }
