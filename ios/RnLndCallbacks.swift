@@ -441,6 +441,7 @@ class EmptyResponseBooleanCallback: NSObject, LndmobileCallbackProtocol {
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "EmptyResponseBooleanCallback onError");
+        print(p0.debugDescription);
         resolve(false)
     }
     

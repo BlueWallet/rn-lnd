@@ -88,7 +88,7 @@ class RnLnd: NSObject {
                 return
             }
             do {
-                try FileManager.default.copyItem(at: filePath, to: URL(string: "\(directory)\(file).\(filesToCopyExtension[index])")!)
+                try FileManager.default.copyItem(at: filePath, to: URL(string: "\(directory)/\(file).\(filesToCopyExtension[index])")!)
             } catch {
                 print("copy \(file) failed")
                 print(error.localizedDescription)
@@ -206,6 +206,7 @@ class RnLnd: NSObject {
     @objc
     func start(_ lndArguments: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) -> Void {
         print("ReactNativeLND", "start");
+        
         let path = getLNDDocumentsDirectory().appendingPathComponent( "data/chain/bitcoin/mainnet/block_headers.bin")
         if !FileManager.default.fileExists(atPath: path.path) {
             copyFiles()
