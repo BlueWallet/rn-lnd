@@ -103,7 +103,7 @@ class RnLnd: NSObject {
             if let data = queryRoutesJsonString.data(using: .utf8), let jsonArray = try JSONSerialization.jsonObject(with: data, options : .allowFragments) as? [String: AnyObject]
             {
                 
-               print(jsonArray) // use the json here
+                print(jsonArray) // use the json here
                 let routesJSON = jsonArray["routes"] as? [Dictionary<String,Any>]
                 let routeJSON = routesJSON?.first
                 let hopsJSON = routeJSON?["hops"] as? [Dictionary<String,Any>]
@@ -128,7 +128,7 @@ class RnLnd: NSObject {
                     for index in (1...hops.count) {
                         let hop = hops[index - 1]
                         print("ReactNativeLND", "chanId = \(String(describing: hop["chan_id"])) \(String(describing: hop["chan_id"])) \(String(describing: hop["chan_id"]))")
-
+                        
                         var hopTemp = Lnrpc_Hop()
                         if let chanID = hop["chan_id"] as? String, let chanIDInt = UInt64(chanID) {
                             hopTemp.chanID = chanIDInt
@@ -169,7 +169,7 @@ class RnLnd: NSObject {
                             var mppRecord = Lnrpc_MPPRecord()
                             if let paymentAddrData: Data = stringToBytesToData(string: paymentAddrHex) {
                                 mppRecord.paymentAddr = paymentAddrData
-                            
+                                
                             }
                             if let forwardMSat = hop["amt_to_forward_msat"] as? String, let forwardMSatInt = Int64(forwardMSat) {
                                 mppRecord.totalAmtMsat = forwardMSatInt
@@ -342,7 +342,7 @@ class RnLnd: NSObject {
         
         guard let chanIdHexData = stringToBytesToData(string: chanIdHex) else {
             return resolve(false)
-
+            
         }
         
         var fundingShimCancel = Lnrpc_FundingShimCancel()
@@ -351,7 +351,7 @@ class RnLnd: NSObject {
         var request = Lnrpc_FundingTransitionMsg()
         request.shimCancel = fundingShimCancel
         guard let serializedData = try? request.serializedData() else {
-            return resolve(false)
+            return reject("fundingStateStepCancel onError", "Failed onError guard", nil)
         }
         LndmobileFundingStateStep(serializedData, FundingStateStepCallback(resolve: resolve, reject: reject))
     }
@@ -360,11 +360,9 @@ class RnLnd: NSObject {
     func openChannelPsbt(_ pubkeyHex: String, amountSats: NSNumber, privateChannel: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         print("ReactNativeLND", "openChannelPsbt");
         
+        guard let nodePubKey = stringToBytesToData(string: pubkeyHex), let randomBytes = generateRandomBytes(), let pendingChanIDData =  base64BytesStringToData(string: randomBytes) else { return reject("openChannelPsbt onError", "openChannelPSBT serializedData guard failed", nil) }
         
-        guard let nodePubKey = stringToBytesToData(string: pubkeyHex), let randomBytes = generateRandomBytes(), let pendingChanIDData =  base64BytesStringToData(string: randomBytes) else { return resolve(false) }
         
-   
-
         var psbtShim = Lnrpc_PsbtShim()
         psbtShim.pendingChanID = pendingChanIDData
         var fundingShim = Lnrpc_FundingShim()
@@ -375,7 +373,7 @@ class RnLnd: NSObject {
         request.fundingShim = fundingShim
         request.private = privateChannel
         guard let serializedData = try? request.serializedData() else {
-            return resolve(false)
+            return reject("openChannelPsbt onError", "openChannelPSBT serializedData guard failed", nil)
         }
         
         let stream = OpenChannelRecvStream(resolve: resolve, reject: reject)

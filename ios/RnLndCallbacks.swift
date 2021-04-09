@@ -27,7 +27,7 @@ class StartCallback: NSObject, LndmobileCallbackProtocol {
 }
 
 class StartCallback2: NSObject, LndmobileCallbackProtocol {
-        
+    
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "StartCallback2 error");
     }
@@ -456,7 +456,7 @@ class FundingStateStepCallback: NSObject, LndmobileCallbackProtocol {
     
     var resolve: RCTPromiseResolveBlock
     var reject: RCTPromiseRejectBlock
-
+    
     init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         self.resolve = resolve
         self.reject = reject
@@ -496,9 +496,8 @@ class OpenChannelRecvStream: NSObject, LndmobileRecvStreamProtocol {
     }
     
     func onError(_ p0: Error?) {
-        guard let p0Data = p0 else { return reject("OpenChannelRecvStream onError", "Failed onError guard", NSError())}
+        guard let p0Data = p0 else { return reject("OpenChannelRecvStream onError", "Failed onError guard", nil)}
         reject("OpenChannelRecvStream onError", p0Data.localizedDescription, p0Data)
-    
     }
 }
 
