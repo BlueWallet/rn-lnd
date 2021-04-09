@@ -199,8 +199,8 @@ class RnLnd: NSObject {
             }
         } catch let error as NSError {
             print(error)
+            resolve(false)
         }
-        
     }
     
     @objc
@@ -296,7 +296,7 @@ class RnLnd: NSObject {
     }
     
     @objc
-    func fundingStateStepVerify(_ chanIdHex: String, psbtHex: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
+    func fundingStateStepVerify(_ chanIdHex: String, psbtHex: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         print("ReactNativeLND", "fundingStateStepVerify");
         print(chanIdHex)
         guard let chanIdHexData = stringToBytesToData(string: chanIdHex), let psbtData = stringToBytesToData(string: psbtHex) else {
@@ -313,11 +313,11 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        LndmobileFundingStateStep(serializedData, FundingStateStepCallback(resolve: resolve))
+        LndmobileFundingStateStep(serializedData, FundingStateStepCallback(resolve: resolve, reject: reject))
     }
     
     @objc
-    func fundingStateStepFinalize(_ chanIdHex: String, psbtHex: String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
+    func fundingStateStepFinalize(_ chanIdHex: String, psbtHex: String,  resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         print("ReactNativeLND", "fundingStateStepFinalize");
         
         guard let chanIdHexData = stringToBytesToData(string: chanIdHex), let psbtData = stringToBytesToData(string: psbtHex) else {
@@ -333,11 +333,11 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        LndmobileFundingStateStep(serializedData, FundingStateStepCallback(resolve: resolve))
+        LndmobileFundingStateStep(serializedData, FundingStateStepCallback(resolve: resolve, reject: reject))
     }
     
     @objc
-    func fundingStateStepCancel(_ chanIdHex: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
+    func fundingStateStepCancel(_ chanIdHex: String, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         print("ReactNativeLND", "fundingStateStep");
         
         guard let chanIdHexData = stringToBytesToData(string: chanIdHex) else {
@@ -353,11 +353,11 @@ class RnLnd: NSObject {
         guard let serializedData = try? request.serializedData() else {
             return resolve(false)
         }
-        LndmobileFundingStateStep(serializedData, FundingStateStepCallback(resolve: resolve))
+        LndmobileFundingStateStep(serializedData, FundingStateStepCallback(resolve: resolve, reject: reject))
     }
     
     @objc
-    func openChannelPsbt(_ pubkeyHex: String, amountSats: NSNumber, privateChannel: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseResolveBlock) {
+    func openChannelPsbt(_ pubkeyHex: String, amountSats: NSNumber, privateChannel: Bool, resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         print("ReactNativeLND", "openChannelPsbt");
         
         
@@ -378,7 +378,7 @@ class RnLnd: NSObject {
             return resolve(false)
         }
         
-        let stream = OpenChannelRecvStream(resolve: resolve)
+        let stream = OpenChannelRecvStream(resolve: resolve, reject: reject)
         LndmobileOpenChannel(serializedData,stream)
     }
     

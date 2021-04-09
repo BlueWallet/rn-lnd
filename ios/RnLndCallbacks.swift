@@ -455,14 +455,17 @@ class EmptyResponseBooleanCallback: NSObject, LndmobileCallbackProtocol {
 class FundingStateStepCallback: NSObject, LndmobileCallbackProtocol {
     
     var resolve: RCTPromiseResolveBlock
-    
-    init(resolve: @escaping RCTPromiseResolveBlock) {
+    var reject: RCTPromiseRejectBlock
+
+    init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         self.resolve = resolve
+        self.reject = reject
     }
     
     func onError(_ p0: Error?) {
         print("ReactNativeLND", "FundingStateStepCallback error \(String(describing: p0?.localizedDescription))")
-        resolve(false)
+        guard let p0Data = p0 else { return reject("FundingStateStepCallback onError", "Failed onError guard", nil)}
+        reject("FundingStateStepCallback onError", p0Data.localizedDescription, p0)
     }
     
     func onResponse(_ p0: Data?) {
@@ -477,9 +480,11 @@ class FundingStateStepCallback: NSObject, LndmobileCallbackProtocol {
 class OpenChannelRecvStream: NSObject, LndmobileRecvStreamProtocol {
     
     var resolve: RCTPromiseResolveBlock
+    var reject: RCTPromiseRejectBlock
     
-    init(resolve: @escaping RCTPromiseResolveBlock) {
+    init(resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         self.resolve = resolve
+        self.reject = reject
     }
     
     func onResponse(_ p0: Data?) {
@@ -491,12 +496,9 @@ class OpenChannelRecvStream: NSObject, LndmobileRecvStreamProtocol {
     }
     
     func onError(_ p0: Error?) {
-        if p0?.localizedDescription != "EOF" {
-            print("OpenChannel error response - \(p0?.localizedDescription ?? "")")
-            resolve(false)
-        } else {
-            resolve(false)
-        }
+        guard let p0Data = p0 else { return reject("OpenChannelRecvStream onError", "Failed onError guard", NSError())}
+        reject("OpenChannelRecvStream onError", p0Data.localizedDescription, p0Data)
+    
     }
 }
 
