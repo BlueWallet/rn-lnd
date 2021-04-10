@@ -3,11 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		6D1D0BBA25F6908B0031279C /* lnrpc in Sources */ = {isa = PBXBuildFile; fileRef = 6D1D0BB925F690800031279C /* lnrpc */; };
+		6D36AB0E26218496007329C6 /* Lndmobile.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6D1D0B5125F68F790031279C /* Lndmobile.xcframework */; };
 		6DC5378025F1C89000A57131 /* RnLnd.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* RnLnd.m */; };
 		6DC5378125F1C89000A57131 /* RnLndCallbacks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D587BC125A60DB6002F15F2 /* RnLndCallbacks.swift */; };
 		F4FF95D7245B92E800C19C63 /* RnLnd.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* RnLnd.swift */; };
@@ -40,6 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6D36AB0E26218496007329C6 /* Lndmobile.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -189,6 +191,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2,6";
 			};
 			name = Debug;
 		};
@@ -231,6 +234,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2,6";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -251,6 +255,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "RnLnd-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,6";
 			};
 			name = Debug;
 		};
@@ -269,6 +274,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "RnLnd-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,6";
 			};
 			name = Release;
 		};
